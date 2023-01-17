@@ -9,7 +9,8 @@ const DB = process.env.DB || '';
 const config = {
     env: process.env.NODE_ENV || 'development',
     port: process.env.PORT || 6000,
-    mongoDBUrl: `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@databasecluster.2cgf66k.mongodb.net/${DB}?retryWrites=true&w=majority`
+    mongoDBUrl: `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@databasecluster.2cgf66k.mongodb.net/${DB}?retryWrites=true&w=majority`,
+    jwtSecret: process.env.JWT_SECRET || ''
 };
 
 export default config;
