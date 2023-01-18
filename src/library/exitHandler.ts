@@ -1,5 +1,4 @@
 import { HttpTerminator } from 'http-terminator';
-
 import mongoose from 'mongoose';
 
 import logger from './logger';

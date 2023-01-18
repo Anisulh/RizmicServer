@@ -72,3 +72,18 @@ export const registerUser = async (req: Request, res: Response) => {
 };
 
 //create similar to regUser but for loginUser
+export const loginUser = async (req: Request, res: Response) => {
+    const {email,password} = req.body;
+    const userEmail = await User.findOne({ email });
+    const checkPassword = await bcrypt.compare(password,email.password) 
+
+    if (!userEmail || !checkPassword){
+        console.log('Invalid Credentials');
+        const error = new AppError({
+            httpCode: HttpCode.INTERNAL_SERVER_ERROR,
+            description: 'Invalid Credentials'
+        });
+        errorHandler.handleError(error, res);
+    }
+    return;
+}
