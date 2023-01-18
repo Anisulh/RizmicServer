@@ -46,7 +46,6 @@ class ErrorHandler {
         return false;
     }
     private handleTrustedError(error: AppError, response: Response): void {
-        console.log('trusted error');
         response.status(error.httpCode).json({ message: error.message });
     }
     private handleCriticalError(

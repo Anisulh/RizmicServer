@@ -71,19 +71,44 @@ export const registerUser = async (req: Request, res: Response) => {
     }
 };
 
-//create similar to regUser but for loginUser
 export const loginUser = async (req: Request, res: Response) => {
-    const {email,password} = req.body;
-    const userEmail = await User.findOne({ email });
-    const checkPassword = await bcrypt.compare(password,email.password) 
+    try {
+        const {email,password} = req.body;
+        const user = await User.findOne({ email });
 
-    if (!userEmail || !checkPassword){
-        console.log('Invalid Credentials');
-        const error = new AppError({
-            httpCode: HttpCode.INTERNAL_SERVER_ERROR,
-            description: 'Invalid Credentials'
-        });
-        errorHandler.handleError(error, res);
+        //If user does not exist
+        if (user){
+            const passwordValidation = await bcrypt.compare(password,user.password) 
+            //Invalid credentials
+            if (!passwordValidation){
+                const error = new AppError({
+                    httpCode: HttpCode.INTERNAL_SERVER_ERROR,
+                    description: 'Invalid Credentials'
+                });
+                logger.error(error);
+                errorHandler.handleError(error, res);
+            }
+            const accessToken = generateToken(user.id);
+            res.status(200).json({accessToken});
+        }
+        else {
+            const error = new AppError({
+                httpCode: HttpCode.INTERNAL_SERVER_ERROR,
+                description: 'User does not exist'
+            });
+            logger.error(error);
+            errorHandler.handleError(error, res);
+        }
+
+    } catch (error) {
+        if (error instanceof Error){
+            logger.error(error);
+            errorHandler.handleError(error, res);
+        }
+        else {
+            const unknownError = new Error('Unknown error occuring at loginUser controller');
+            logger.error(unknownError);
+            errorHandler.handleError(unknownError, res);
+        }
     }
-    return;
 }
