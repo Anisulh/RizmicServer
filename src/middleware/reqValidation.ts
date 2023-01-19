@@ -15,7 +15,7 @@ export const reqValidation = (schema: ObjectSchema) => {
                     new AppError({
                         name: 'JOI validation Error',
                         httpCode: HttpCode.BAD_REQUEST,
-                        description: error.annotate()
+                        description: 'Invalid credentials passed'
                     }),
                     res
                 );
