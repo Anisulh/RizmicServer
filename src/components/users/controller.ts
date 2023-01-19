@@ -26,7 +26,6 @@ export const registerUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
         //check if user already exists
-        console.log('registerUser');
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             errorHandler.handleError(
@@ -47,15 +46,12 @@ export const registerUser = async (req: Request, res: Response) => {
 
         //add user to db
         const createdUser: AnyObject = await User.create(userData);
-        console.log(createdUser);
         if (createdUser) {
             const createdUserData: IUser = { ...createdUser._doc };
             createdUserData['token'] = generateToken(createdUserData._id);
             delete createdUserData.password;
-            console.log(createdUserData);
             res.status(201).json(createdUserData);
         } else {
-            console.log('unable to find user');
             const error = new AppError({
                 httpCode: HttpCode.INTERNAL_SERVER_ERROR,
                 description: 'Unable to save new user instance'
@@ -73,42 +69,44 @@ export const registerUser = async (req: Request, res: Response) => {
 
 export const loginUser = async (req: Request, res: Response) => {
     try {
-        const {email,password} = req.body;
+        const { email, password } = req.body;
         const user = await User.findOne({ email });
 
-        //If user does not exist
-        if (user){
-            const passwordValidation = await bcrypt.compare(password,user.password) 
+        if (user) {
+            const passwordValidation = await bcrypt.compare(
+                password,
+                user.password
+            );
+
             //Invalid credentials
-            if (!passwordValidation){
+            if (!passwordValidation) {
                 const error = new AppError({
-                    httpCode: HttpCode.INTERNAL_SERVER_ERROR,
+                    httpCode: HttpCode.BAD_REQUEST,
                     description: 'Invalid Credentials'
                 });
                 logger.error(error);
                 errorHandler.handleError(error, res);
             }
             const accessToken = generateToken(user.id);
-            res.status(200).json({accessToken});
-        }
-        else {
+            res.status(200).json({ accessToken });
+        } else {
             const error = new AppError({
-                httpCode: HttpCode.INTERNAL_SERVER_ERROR,
+                httpCode: HttpCode.BAD_REQUEST,
                 description: 'User does not exist'
             });
             logger.error(error);
             errorHandler.handleError(error, res);
         }
-
     } catch (error) {
-        if (error instanceof Error){
+        if (error instanceof Error) {
             logger.error(error);
             errorHandler.handleError(error, res);
-        }
-        else {
-            const unknownError = new Error('Unknown error occuring at loginUser controller');
+        } else {
+            const unknownError = new Error(
+                'Unknown error occuring at loginUser controller'
+            );
             logger.error(unknownError);
             errorHandler.handleError(unknownError, res);
         }
     }
-}
+};
