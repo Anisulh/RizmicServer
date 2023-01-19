@@ -5,9 +5,9 @@ import config from './config';
 
 const dbConnection = async (): Promise<void> => {
     try {
+        mongoose.set('strictQuery', false);
         await mongoose.connect(config.mongoDBUrl);
         logger.info('Successfully connected to mongoDB');
-        console.log("logging")
     } catch (error) {
         logger.error('Unable to connect to database');
         if (typeof error === 'string') {
@@ -21,5 +21,3 @@ const dbConnection = async (): Promise<void> => {
 };
 
 export default dbConnection;
-
-
