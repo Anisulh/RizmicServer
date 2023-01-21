@@ -1,12 +1,13 @@
 import morgan, { StreamOptions } from 'morgan';
+import config from '../config/config';
 import logger from '../library/logger';
 
 const stream: StreamOptions = {
-    write: (message) => logger.http(message)
+    write: (message) => logger.debug(message)
 };
 
 const skip = () => {
-    const env = process.env.NODE_ENV || 'development';
+    const env = config.env || 'development';
     return env !== 'development';
 };
 

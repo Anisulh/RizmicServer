@@ -1,20 +1,22 @@
 import winston, { createLogger } from 'winston';
 import config from '../config/config';
 
-const level = config.env === 'development' ? 'info' : 'warn';
+const level = () => {
+    const isDevelopment = config.env === 'development';
+    return isDevelopment ? 'debug' : 'warn';
+};
 
 const levels = {
     error: 0,
     warn: 1,
     info: 2,
-    http: 3,
-    debug: 4
+    debug: 3
 };
+
 const colors = {
     error: 'red',
     warn: 'yellow',
     info: 'cyan',
-    http: 'magenta',
     debug: 'white'
 };
 winston.addColors(colors);
@@ -38,13 +40,13 @@ const transports = [
     new winston.transports.Console(),
     new winston.transports.File({ filename: 'logs/combined.log' }),
     new winston.transports.File({
-        filename: 'logs/criticalError.log',
-        level: 'criticalError'
+        filename: 'logs/error.log',
+        level: 'error'
     })
 ];
 
 const logger = createLogger({
-    level,
+    level: level(),
     levels,
     format,
     transports,
@@ -56,8 +58,8 @@ const logger = createLogger({
     ]
 });
 
-logger.on('error', () => {
-    console.log('Unable to log appropriately, Logger failed....');
+logger.on('error', (err) => {
+    console.log('Unable to log appropriately, Logger failed....', err);
     process.exit(1);
 });
 
