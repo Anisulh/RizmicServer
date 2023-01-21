@@ -4,7 +4,7 @@ dotenv.config();
 
 const MONGO_USERNAME = process.env.MONGO_USERNAME || '';
 const MONGO_PASSWORD = process.env.MONGO_PASSWORD || '';
-const DB = process.env.DB || '';
+const DB = process.env.DB_NAME || '';
 
 const config = {
     env: process.env.NODE_ENV || 'development',
