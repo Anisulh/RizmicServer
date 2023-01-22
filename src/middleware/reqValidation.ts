@@ -11,6 +11,7 @@ export const reqValidation = (schema: ObjectSchema) => {
             next();
         } catch (error: ValidationError | unknown) {
             if (error instanceof ValidationError) {
+                logger.error(error.annotate());
                 errorHandler.handleError(
                     new AppError({
                         name: 'JOI validation Error',

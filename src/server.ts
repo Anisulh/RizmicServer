@@ -8,24 +8,22 @@ import './process';
 
 const app: Application = express();
 
-
 dbConnection();
-app.use(httpLogger)
+app.use(httpLogger);
 const allowedOrigins = ['http://localhost:5173'];
 
 const options: CorsOptions = {
-  origin: allowedOrigins
+    origin: allowedOrigins
 };
 
-app.use(cors(options))
+app.use(cors(options));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 //routing
 app.use('/user', router);
 
-//router errorhandling 
+//router errorhandling
 app.use(routeError);
-
 
 export default app;
