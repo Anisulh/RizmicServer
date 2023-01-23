@@ -37,7 +37,7 @@ export const registerUser = async (req: Request, res: Response) => {
     try {
         if (
             req.headers['authorization'] &&
-            req.headers['authorization'].split(' ')[0] === 'Bearer'                //! make sure its getting the proper array number
+            req.headers['authorization'].split(' ')[0] === 'Bearer' //! make sure its getting the proper array number
         ) {
             const googleToken = req.headers['authorization'].split(' ')[1];
             const payload = await verifyGoogleToken(googleToken);
@@ -54,22 +54,25 @@ export const registerUser = async (req: Request, res: Response) => {
                     errorHandler.handleError(appError, res);
                     return;
                 }
-                const createdUser:AnyObject = await User.create({
+                const createdUser: AnyObject = await User.create({
                     googleID: sub,
                     firstName: given_name,
                     lastName: family_name,
                     email: email,
                     profilePicture: picture
                 });
-                if(createdUser){
-                    const createdUserData: IUser = structuredClone(createdUser._doc);
-                    createdUserData['token'] = generateToken(createdUserData._id);
+                if (createdUser) {
+                    const createdUserData: IUser = structuredClone(
+                        createdUser._doc
+                    );
+                    createdUserData['token'] = generateToken(
+                        createdUserData._id
+                    );
                     res.status(201).json(createdUserData);
                 } else {
-                    const error = new Error('unable to save user instance')
-                    errorHandler.handleError(error, res)
+                    const error = new Error('unable to save user instance');
+                    errorHandler.handleError(error, res);
                 }
-
             } else {
                 const appError = new AppError({
                     name: 'Google OAuth Error',
@@ -125,12 +128,48 @@ export const registerUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email });
+        const existingUser = await User.findOne({ email });
 
-        if (user && user.password) {
-            const passwordValidation = bcrypt.compare(password, user.password);
+        if (
+            req.headers['authorization'] &&
+            req.headers['authorization'].split(' ')[0] === 'Bearer'
+        ) {
+            const googleToken = req.headers['authorization'].split(' ')[1];
+            const payload = await verifyGoogleToken(googleToken);
+            if (payload) {
+                const { sub } = payload;
+                if (existingUser) {
+                    if (sub === existingUser.googleID) {
+                        const accessToken = generateToken(existingUser._id);
+                        res.status(200).json({ accessToken });
+                    } else if (existingUser && !existingUser.googleID) {
+                        existingUser.updateOne({ googleID: sub }, () => {
+                            const sendError = new Error(
+                                "Couldn't update existing user instance"
+                            );
+                            errorHandler.handleError(sendError, res);
+                            return;
+                        });
+                        const accessToken = generateToken(existingUser._id);
+                        res.status(200).json({ accessToken });
+                    } else {
+                        const appError = new AppError({
+                            name: 'Google Login User Error',
+                            description:
+                                'Unable to login, Google user does not exist',
+                            httpCode: HttpCode.BAD_REQUEST
+                        });
+                        errorHandler.handleError(appError, res);
+                        return;
+                    }
+                }
+            }
+        } else if (existingUser && existingUser.password) {
+            const passwordValidation = bcrypt.compare(
+                password,
+                existingUser.password
+            );
 
-            //Invalid credentials
             if (!passwordValidation) {
                 const error = new AppError({
                     httpCode: HttpCode.BAD_REQUEST,
@@ -139,7 +178,7 @@ export const loginUser = async (req: Request, res: Response) => {
                 logger.error(error);
                 errorHandler.handleError(error, res);
             }
-            const accessToken = generateToken(user.id);
+            const accessToken = generateToken(existingUser.id);
             res.status(200).json({ accessToken });
         } else {
             const error = new AppError({
