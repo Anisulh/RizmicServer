@@ -10,7 +10,8 @@ const config = {
     env: process.env.NODE_ENV || 'development',
     port: process.env.PORT || 6000,
     mongoDBUrl: `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@databasecluster.2cgf66k.mongodb.net/${DB}?retryWrites=true&w=majority`,
-    jwtSecret: process.env.JWT_SECRET || ''
+    jwtSecret: process.env.JWT_SECRET || '',
+    googleClientID: process.env.GOOGLE_CLIENT_ID || ''
 };
 
 export default config;
