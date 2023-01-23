@@ -7,8 +7,15 @@ import logger from '../library/logger';
 export const reqValidation = (schema: ObjectSchema) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
-            await schema.validateAsync(req.body);
-            next();
+            if (
+                req.headers['authorization'] &&
+                req.headers['authorization'].split(' ')[0] === 'Bearer'
+            ) {
+                next();
+            } else {
+                await schema.validateAsync(req.body);
+                next();
+            }
         } catch (error: ValidationError | unknown) {
             if (error instanceof ValidationError) {
                 logger.error(error.annotate());

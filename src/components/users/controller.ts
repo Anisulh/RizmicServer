@@ -6,6 +6,8 @@ import { AnyObject, Types } from 'mongoose';
 import logger from '../../library/logger';
 import jwt from 'jsonwebtoken';
 import config from '../../config/config';
+import { OAuth2Client } from 'google-auth-library';
+const client = new OAuth2Client(config.googleClientID);
 
 interface IUser {
     _id: Types.ObjectId;
@@ -13,7 +15,7 @@ interface IUser {
     lastName: string;
     password?: string;
     phoneNumber?: string;
-    avatar?: string;
+    profilePicture?: string;
     token?: string;
 }
 
@@ -22,10 +24,63 @@ const generateToken = (id: Types.ObjectId): string => {
     return jwt.sign({ id }, config.jwtSecret);
 };
 
+const verifyGoogleToken = async (token: string) => {
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: config.googleClientID
+    });
+    const payload = ticket.getPayload();
+    return payload;
+};
+
 export const registerUser = async (req: Request, res: Response) => {
     try {
+        if (
+            req.headers['authorization'] &&
+            req.headers['authorization'].split(' ')[0] === 'Bearer'                //! make sure its getting the proper array number
+        ) {
+            const googleToken = req.headers['authorization'].split(' ')[1];
+            const payload = await verifyGoogleToken(googleToken);
+            if (payload) {
+                const { sub, email, given_name, family_name, picture } =
+                    payload;
+                const existingUser = await User.findOne({ email });
+                if (existingUser) {
+                    const appError = new AppError({
+                        name: 'Existing User Error',
+                        description: 'Unable to register, user already exists',
+                        httpCode: HttpCode.BAD_REQUEST
+                    });
+                    errorHandler.handleError(appError, res);
+                    return;
+                }
+                const createdUser:AnyObject = await User.create({
+                    googleID: sub,
+                    firstName: given_name,
+                    lastName: family_name,
+                    email: email,
+                    profilePicture: picture
+                });
+                if(createdUser){
+                    const createdUserData: IUser = structuredClone(createdUser._doc);
+                    createdUserData['token'] = generateToken(createdUserData._id);
+                    res.status(201).json(createdUserData);
+                } else {
+                    const error = new Error('unable to save user instance')
+                    errorHandler.handleError(error, res)
+                }
+
+            } else {
+                const appError = new AppError({
+                    name: 'Google OAuth Error',
+                    description: 'Unable to register with google',
+                    httpCode: HttpCode.BAD_REQUEST
+                });
+                errorHandler.handleError(appError, res);
+                return;
+            }
+        }
         const { email, password } = req.body;
-        //check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             errorHandler.handleError(
@@ -72,11 +127,8 @@ export const loginUser = async (req: Request, res: Response) => {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
 
-        if (user) {
-            const passwordValidation = await bcrypt.compare(
-                password,
-                user.password
-            );
+        if (user && user.password) {
+            const passwordValidation = bcrypt.compare(password, user.password);
 
             //Invalid credentials
             if (!passwordValidation) {
