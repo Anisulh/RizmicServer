@@ -37,7 +37,7 @@ export const registerUser = async (req: Request, res: Response) => {
     try {
         if (
             req.headers['authorization'] &&
-            req.headers['authorization'].split(' ')[0] === 'Bearer' //! make sure its getting the proper array number
+            req.headers['authorization'].split(' ')[0] === 'Bearer' 
         ) {
             const googleToken = req.headers['authorization'].split(' ')[1];
             const payload = await verifyGoogleToken(googleToken);
@@ -62,9 +62,7 @@ export const registerUser = async (req: Request, res: Response) => {
                     profilePicture: picture
                 });
                 if (createdUser) {
-                    const createdUserData: IUser = structuredClone(
-                        createdUser._doc
-                    );
+                    const createdUserData: IUser = {...createdUser._doc}
                     createdUserData['token'] = generateToken(
                         createdUserData._id
                     );
