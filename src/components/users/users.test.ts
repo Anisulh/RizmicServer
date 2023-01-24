@@ -40,6 +40,7 @@ describe('User registration', () => {
             .post('/user/register')
             .send(nonExistingUser)
             .expect(201);
+        
         expect(response.body).toMatchObject({
             __v: 0,
             _id: expect.any(String),
@@ -65,7 +66,14 @@ describe('User login', () => {
             .send(existingUserLogin)
             .expect(200);
         expect(response.body).toMatchObject({
-            accessToken: expect.any(String)
+            __v: 0,
+            _id: expect.any(String),
+            firstName: expect.any(String),
+            lastName: expect.any(String),
+            email: expect.any(String),
+            token: expect.any(String),
+            createdAt: expect.any(String),
+            updatedAt: expect.any(String)
         });
     });
     it('Should return 400 if user does not exist in DB', async () => {
