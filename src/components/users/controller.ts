@@ -126,7 +126,7 @@ export const registerUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
-        const existingUser = await User.findOne({ email });
+        const leanExistingUserDoc = await User.findOne({ email }).lean();
 
         if (
             req.headers['authorization'] &&
@@ -136,20 +136,25 @@ export const loginUser = async (req: Request, res: Response) => {
             const payload = await verifyGoogleToken(googleToken);
             if (payload) {
                 const { sub } = payload;
-                if (existingUser) {
-                    if (sub === existingUser.googleID) {
-                        const accessToken = generateToken(existingUser._id);
-                        res.status(200).json({ accessToken });
-                    } else if (existingUser && !existingUser.googleID) {
-                        existingUser.updateOne({ googleID: sub }, () => {
-                            const sendError = new Error(
-                                "Couldn't update existing user instance"
-                            );
-                            errorHandler.handleError(sendError, res);
-                            return;
-                        });
-                        const accessToken = generateToken(existingUser._id);
-                        res.status(200).json({ accessToken });
+                if (leanExistingUserDoc) {
+                    if (sub === leanExistingUserDoc.googleID) {
+                        const user: IUser = leanExistingUserDoc;
+                        user['token'] = generateToken(leanExistingUserDoc._id);
+                        delete user.password;
+                        res.status(200).json(user);
+                    } else if (
+                        leanExistingUserDoc &&
+                        !leanExistingUserDoc.googleID
+                    ) {
+                        await User.findOneAndUpdate(
+                            { email },
+                            { googleID: sub }
+                        );
+
+                        const user: IUser = leanExistingUserDoc;
+                        user['token'] = generateToken(leanExistingUserDoc._id);
+                        delete user.password;
+                        res.status(200).json(user);
                     } else {
                         const appError = new AppError({
                             name: 'Google Login User Error',
@@ -162,10 +167,10 @@ export const loginUser = async (req: Request, res: Response) => {
                     }
                 }
             }
-        } else if (existingUser && existingUser.password) {
+        } else if (leanExistingUserDoc && leanExistingUserDoc.password) {
             const passwordValidation = bcrypt.compare(
                 password,
-                existingUser.password
+                leanExistingUserDoc.password
             );
 
             if (!passwordValidation) {
@@ -176,8 +181,10 @@ export const loginUser = async (req: Request, res: Response) => {
                 logger.error(error);
                 errorHandler.handleError(error, res);
             }
-            const accessToken = generateToken(existingUser.id);
-            res.status(200).json({ accessToken });
+            const user: IUser = leanExistingUserDoc;
+            user['token'] = generateToken(leanExistingUserDoc._id);
+            delete user.password;
+            res.status(200).json(user);
         } else {
             const error = new AppError({
                 httpCode: HttpCode.BAD_REQUEST,
