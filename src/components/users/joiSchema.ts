@@ -22,5 +22,5 @@ export const loginSchema = Joi.object({
             tlds: { allow: ['com', 'net'] }
         })
         .required(),
-    password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required()
+    password: Joi.string().pattern(new RegExp(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{5,}$/)).required()
 });
