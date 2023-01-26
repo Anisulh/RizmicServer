@@ -9,10 +9,8 @@ import config from '../../config/config';
 import { OAuth2Client } from 'google-auth-library';
 import {
     limiterConsecutiveFailsByEmailAndIP,
-    limiterSlowBruteByIP,
-    maxConsecutiveFailsByEmailAndIP,
-    maxWrongAttemptsByIPperDay
-} from '../../limiterInstances';
+    limiterSlowBruteByIP
+} from '../../library/limiterInstances';
 
 const client = new OAuth2Client(config.googleClientID);
 
@@ -154,12 +152,13 @@ export const loginUser = async (req: Request, res: Response) => {
         // Check if IP or Email + IP is already blocked
         if (
             resSlowByIP !== null &&
-            resSlowByIP.consumedPoints > maxWrongAttemptsByIPperDay
+            resSlowByIP.consumedPoints > config.maxWrongAttemptsByIPperDay
         ) {
             retrySecs = Math.round(resSlowByIP.msBeforeNext / 1000) || 1;
         } else if (
             resEmailAndIP !== null &&
-            resEmailAndIP.consumedPoints > maxConsecutiveFailsByEmailAndIP
+            resEmailAndIP.consumedPoints >
+                config.maxConsecutiveFailsByEmailAndIP
         ) {
             retrySecs = Math.round(resEmailAndIP.msBeforeNext / 1000) || 1;
         }

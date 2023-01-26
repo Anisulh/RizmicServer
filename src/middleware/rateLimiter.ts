@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { rateLimiter } from '../limiterInstances';
+import { rateLimiter } from '../library/limiterInstances';
 
 const rateLimiterMiddleware = (
     req: Request,

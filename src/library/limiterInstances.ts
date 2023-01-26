@@ -1,8 +1,6 @@
 import { Redis } from 'ioredis';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
-
-export const maxWrongAttemptsByIPperDay = 100;
-export const maxConsecutiveFailsByEmailAndIP = 10;
+import config from '../config/config';
 
 export const redis = new Redis();
 export const rateLimiter = new RateLimiterRedis({
@@ -14,7 +12,7 @@ export const rateLimiter = new RateLimiterRedis({
 export const limiterSlowBruteByIP = new RateLimiterRedis({
     storeClient: redis,
     keyPrefix: 'login_fail_ip_per_day',
-    points: maxWrongAttemptsByIPperDay,
+    points: config.maxWrongAttemptsByIPperDay as number,
     duration: 60 * 60 * 24,
     blockDuration: 60 * 60 * 24 // Block for 1 day, if 100 wrong attempts per day
 });
@@ -22,7 +20,7 @@ export const limiterSlowBruteByIP = new RateLimiterRedis({
 export const limiterConsecutiveFailsByEmailAndIP = new RateLimiterRedis({
     storeClient: redis,
     keyPrefix: 'login_fail_consecutive_Email_and_ip',
-    points: maxConsecutiveFailsByEmailAndIP,
+    points: config.maxConsecutiveFailsByEmailAndIP as number,
     duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
     blockDuration: 60 * 60 // Block for 1 hour
 });
