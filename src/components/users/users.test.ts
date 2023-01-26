@@ -2,6 +2,7 @@ import request from 'supertest';
 import app from '../../server';
 import User from './model';
 import bcrypt from 'bcrypt';
+import { redis } from '../../library/limiterInstances';
 
 const existingUser = {
     firstName: 'Thomas',
@@ -13,6 +14,10 @@ const existingUserLogin = {
     email: 'thomashatek@gmail.com',
     password: '1234567aA'
 };
+const invalidUserLogin = {
+    email: 'thomashatek@gmail.com',
+    password: '1234567aA2'
+}
 const nonExistingUser = {
     firstName: 'Rod',
     lastName: 'Chainmic',
@@ -26,6 +31,7 @@ const nonExistingUserLogin = {
 };
 
 beforeEach(async () => {
+    await redis.flushall('ASYNC')
     await User.deleteMany();
     const newUser = { ...existingUser };
     const salt = await bcrypt.genSalt(10);
@@ -40,7 +46,7 @@ describe('User registration', () => {
             .post('/user/register')
             .send(nonExistingUser)
             .expect(201);
-        
+
         expect(response.body).toMatchObject({
             __v: 0,
             _id: expect.any(String),
@@ -81,5 +87,17 @@ describe('User login', () => {
             .post('/user/login')
             .send(nonExistingUserLogin)
             .expect(400);
+    });
+    it('Should return 429 if user inputs wrong password twice', async () => {
+        const response = await request(app)
+            .post('/user/login')
+            .send(invalidUserLogin);
+
+        expect(response.statusCode).toBe(400);
+
+        const secondResponse = await request(app)
+            .post('/user/login')
+            .send(invalidUserLogin);
+        expect(secondResponse.statusCode).toBe(429);
     });
 });

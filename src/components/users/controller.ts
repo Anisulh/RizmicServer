@@ -169,7 +169,7 @@ export const loginUser = async (req: Request, res: Response) => {
         } else {
             const basicUserDoc = await User.findOne({ email }).lean();
             if (basicUserDoc && basicUserDoc.password) {
-                const passwordValidation = bcrypt.compare(
+                const passwordValidation = await bcrypt.compare(
                     password,
                     basicUserDoc.password
                 );
