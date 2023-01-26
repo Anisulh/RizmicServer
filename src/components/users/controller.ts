@@ -7,6 +7,11 @@ import logger from '../../library/logger';
 import jwt from 'jsonwebtoken';
 import config from '../../config/config';
 import { OAuth2Client } from 'google-auth-library';
+import {
+    limiterConsecutiveFailsByEmailAndIP,
+    limiterSlowBruteByIP
+} from '../../library/limiterInstances';
+
 const client = new OAuth2Client(config.googleClientID);
 
 interface IUser {
@@ -123,33 +128,119 @@ export const registerUser = async (req: Request, res: Response) => {
     }
 };
 
+const getEmailIPkey = (email: string, ip: string) => `${email}_${ip}`;
+
 export const loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
-        const existingUser = await User.findOne({ email });
+        const ipAddr = req.ip;
+        const emailIPkey = getEmailIPkey(email, ipAddr);
 
-        if (
+        const googleToken: string | null =
             req.headers['authorization'] &&
             req.headers['authorization'].split(' ')[0] === 'Bearer'
+                ? req.headers['authorization'].split(' ')[1]
+                : null;
+
+        const [resEmailAndIP, resSlowByIP] = await Promise.all([
+            limiterConsecutiveFailsByEmailAndIP.get(emailIPkey),
+            limiterSlowBruteByIP.get(ipAddr)
+        ]);
+
+        let retrySecs = 0;
+
+        // Check if IP or Email + IP is already blocked
+        if (
+            resSlowByIP !== null &&
+            resSlowByIP.consumedPoints > config.maxWrongAttemptsByIPperDay
         ) {
-            const googleToken = req.headers['authorization'].split(' ')[1];
-            const payload = await verifyGoogleToken(googleToken);
-            if (payload) {
-                const { sub } = payload;
-                if (existingUser) {
-                    if (sub === existingUser.googleID) {
-                        const accessToken = generateToken(existingUser._id);
-                        res.status(200).json({ accessToken });
-                    } else if (existingUser && !existingUser.googleID) {
-                        existingUser.updateOne({ googleID: sub }, () => {
-                            const sendError = new Error(
-                                "Couldn't update existing user instance"
-                            );
-                            errorHandler.handleError(sendError, res);
-                            return;
+            retrySecs = Math.round(resSlowByIP.msBeforeNext / 1000) || 1;
+        } else if (
+            resEmailAndIP !== null &&
+            resEmailAndIP.consumedPoints >
+                config.maxConsecutiveFailsByEmailAndIP
+        ) {
+            retrySecs = Math.round(resEmailAndIP.msBeforeNext / 1000) || 1;
+        }
+
+        if (retrySecs > 0) {
+            res.set('Retry-After', String(retrySecs));
+            res.status(429).send('Too Many Requests');
+        } else {
+            const basicUserDoc = await User.findOne({ email }).lean();
+            if (basicUserDoc && basicUserDoc.password) {
+                const passwordValidation = await bcrypt.compare(
+                    password,
+                    basicUserDoc.password
+                );
+                if (!passwordValidation) {
+                    // Consume 1 point from limiters on wrong attempt and block if limits reached
+                    try {
+                        const promises = [limiterSlowBruteByIP.consume(ipAddr)];
+                        promises.push(
+                            limiterConsecutiveFailsByEmailAndIP.consume(
+                                emailIPkey
+                            )
+                        );
+                        await Promise.all(promises);
+                        const error = new AppError({
+                            httpCode: HttpCode.BAD_REQUEST,
+                            description: 'Invalid Credentials'
                         });
-                        const accessToken = generateToken(existingUser._id);
-                        res.status(200).json({ accessToken });
+                        logger.error(error);
+                        errorHandler.handleError(error, res);
+                    } catch (error: any) {
+                        if (error instanceof Error) {
+                            errorHandler.handleError(error, res);
+                        } else {
+                            res.set(
+                                'Retry-After',
+                                String(
+                                    Math.round(error.msBeforeNext / 1000) || 1
+                                )
+                            );
+                            res.status(429).send('Too Many Requests');
+                        }
+                    }
+                }
+                if (
+                    resEmailAndIP !== null &&
+                    resEmailAndIP.consumedPoints > 0
+                ) {
+                    // Reset on successful authorisation
+                    await limiterConsecutiveFailsByEmailAndIP.delete(
+                        emailIPkey
+                    );
+                }
+                const user: IUser = basicUserDoc;
+                user['token'] = generateToken(basicUserDoc._id);
+                delete user.password;
+                res.status(200).json(user);
+            } else if (googleToken) {
+                const payload = await verifyGoogleToken(googleToken);
+                if (payload) {
+                    const { sub } = payload;
+                    const googleUserDoc = await User.findOne({
+                        email: payload.email
+                    }).lean();
+                    if (googleUserDoc && !googleUserDoc.googleID) {
+                        await User.findOneAndUpdate(
+                            { email: payload.email },
+                            { googleID: sub }
+                        );
+
+                        const user: IUser = googleUserDoc;
+                        user['token'] = generateToken(googleUserDoc._id);
+                        delete user.password;
+                        res.status(200).json(user);
+                    } else if (
+                        googleUserDoc &&
+                        googleUserDoc.googleID === sub
+                    ) {
+                        const user: IUser = googleUserDoc;
+                        user['token'] = generateToken(googleUserDoc._id);
+                        delete user.password;
+                        res.status(200).json(user);
                     } else {
                         const appError = new AppError({
                             name: 'Google Login User Error',
@@ -161,30 +252,14 @@ export const loginUser = async (req: Request, res: Response) => {
                         return;
                     }
                 }
-            }
-        } else if (existingUser && existingUser.password) {
-            const passwordValidation = bcrypt.compare(
-                password,
-                existingUser.password
-            );
-
-            if (!passwordValidation) {
+            } else {
                 const error = new AppError({
                     httpCode: HttpCode.BAD_REQUEST,
-                    description: 'Invalid Credentials'
+                    description: 'User does not exist'
                 });
                 logger.error(error);
                 errorHandler.handleError(error, res);
             }
-            const accessToken = generateToken(existingUser.id);
-            res.status(200).json({ accessToken });
-        } else {
-            const error = new AppError({
-                httpCode: HttpCode.BAD_REQUEST,
-                description: 'User does not exist'
-            });
-            logger.error(error);
-            errorHandler.handleError(error, res);
         }
     } catch (error) {
         if (error instanceof Error) {

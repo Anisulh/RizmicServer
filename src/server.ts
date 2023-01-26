@@ -5,6 +5,7 @@ import httpLogger from './middleware/httpLogger';
 import routeError from './middleware/routeError';
 import cors, { CorsOptions } from 'cors';
 import './process';
+import rateLimiterMiddleware from './middleware/rateLimiter';
 
 const app: Application = express();
 
@@ -17,6 +18,9 @@ const options: CorsOptions = {
 };
 
 app.use(cors(options));
+
+app.use(rateLimiterMiddleware);
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
