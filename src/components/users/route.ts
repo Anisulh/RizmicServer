@@ -7,5 +7,6 @@ const router = express.Router();
 
 router.post('/register', reqValidation(registerSchema), registerUser);
 router.post('/login', reqValidation(loginSchema), loginUser);
+//router.post('/forgotpassword');
 
 export default router;

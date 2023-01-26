@@ -119,3 +119,17 @@ export const loginUser = async (req: Request, res: Response) => {
         }
     }
 };
+
+export const forgotUserPassword = async (req: Request, res: Response) => {
+    try {
+        const {email} = req.body;
+        const existingUser = await User.findOne({ email });
+        if (!existingUser || !email){
+            res.status(400).send("User does not exist");
+        }
+        
+    } 
+    catch (error) {
+        return;
+    }
+}
