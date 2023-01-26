@@ -11,6 +11,8 @@ import {
     limiterConsecutiveFailsByEmailAndIP,
     limiterSlowBruteByIP
 } from '../../library/limiterInstances';
+import { googleLogin } from './services/googleAuth';
+import { emailLogin } from './services/emailAuth';
 
 const client = new OAuth2Client(config.googleClientID);
 
@@ -169,89 +171,18 @@ export const loginUser = async (req: Request, res: Response) => {
         } else {
             const basicUserDoc = await User.findOne({ email }).lean();
             if (basicUserDoc && basicUserDoc.password) {
-                const passwordValidation = await bcrypt.compare(
+                await emailLogin(
+                    basicUserDoc,
+                    res,
                     password,
-                    basicUserDoc.password
+                    limiterConsecutiveFailsByEmailAndIP,
+                    limiterSlowBruteByIP,
+                    resEmailAndIP,
+                    ipAddr,
+                    emailIPkey
                 );
-                if (!passwordValidation) {
-                    // Consume 1 point from limiters on wrong attempt and block if limits reached
-                    try {
-                        const promises = [limiterSlowBruteByIP.consume(ipAddr)];
-                        promises.push(
-                            limiterConsecutiveFailsByEmailAndIP.consume(
-                                emailIPkey
-                            )
-                        );
-                        await Promise.all(promises);
-                        const error = new AppError({
-                            httpCode: HttpCode.BAD_REQUEST,
-                            description: 'Invalid Credentials'
-                        });
-                        logger.error(error);
-                        errorHandler.handleError(error, res);
-                    } catch (error: any) {
-                        if (error instanceof Error) {
-                            errorHandler.handleError(error, res);
-                        } else {
-                            res.set(
-                                'Retry-After',
-                                String(
-                                    Math.round(error.msBeforeNext / 1000) || 1
-                                )
-                            );
-                            res.status(429).send('Too Many Requests');
-                        }
-                    }
-                }
-                if (
-                    resEmailAndIP !== null &&
-                    resEmailAndIP.consumedPoints > 0
-                ) {
-                    // Reset on successful authorisation
-                    await limiterConsecutiveFailsByEmailAndIP.delete(
-                        emailIPkey
-                    );
-                }
-                const user: IUser = basicUserDoc;
-                user['token'] = generateToken(basicUserDoc._id);
-                delete user.password;
-                res.status(200).json(user);
             } else if (googleToken) {
-                const payload = await verifyGoogleToken(googleToken);
-                if (payload) {
-                    const { sub } = payload;
-                    const googleUserDoc = await User.findOne({
-                        email: payload.email
-                    }).lean();
-                    if (googleUserDoc && !googleUserDoc.googleID) {
-                        await User.findOneAndUpdate(
-                            { email: payload.email },
-                            { googleID: sub }
-                        );
-
-                        const user: IUser = googleUserDoc;
-                        user['token'] = generateToken(googleUserDoc._id);
-                        delete user.password;
-                        res.status(200).json(user);
-                    } else if (
-                        googleUserDoc &&
-                        googleUserDoc.googleID === sub
-                    ) {
-                        const user: IUser = googleUserDoc;
-                        user['token'] = generateToken(googleUserDoc._id);
-                        delete user.password;
-                        res.status(200).json(user);
-                    } else {
-                        const appError = new AppError({
-                            name: 'Google Login User Error',
-                            description:
-                                'Unable to login, Google user does not exist',
-                            httpCode: HttpCode.BAD_REQUEST
-                        });
-                        errorHandler.handleError(appError, res);
-                        return;
-                    }
-                }
+                await googleLogin(googleToken, res);
             } else {
                 const error = new AppError({
                     httpCode: HttpCode.BAD_REQUEST,
