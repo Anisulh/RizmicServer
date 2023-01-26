@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Response } from 'express';
-import { Types } from 'mongoose';
+import { AnyObject, Types } from 'mongoose';
 import { RateLimiterRedis, RateLimiterRes } from 'rate-limiter-flexible';
 import {
     AppError,
@@ -8,6 +8,7 @@ import {
     HttpCode
 } from '../../../library/errorHandler';
 import logger from '../../../library/logger';
+import User from '../model';
 import { generateToken } from './jwt';
 
 interface IUser {
@@ -19,6 +20,32 @@ interface IUser {
     profilePicture?: string;
     token?: string;
 }
+
+interface IUserRegister {
+    firstName: string;
+    lastName: string;
+    password: string;
+    confirmPassword?: string;
+}
+
+export const emailRegister = async (userData: IUserRegister, res: Response) => {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(userData.password, salt);
+    userData.password = hashedPassword;
+    delete userData.confirmPassword;
+
+    //add user to db
+    const createdUser: AnyObject = await User.create(userData);
+    if (createdUser) {
+        const createdUserData: IUser = { ...createdUser._doc };
+        createdUserData['token'] = generateToken(createdUserData._id);
+        delete createdUserData.password;
+        res.status(201).json(createdUserData);
+    } else {
+        const error = new Error('Unable to save new user instance');
+        errorHandler.handleError(error, res);
+    }
+};
 
 export const emailLogin = async (
     basicUserDoc: IUser,
