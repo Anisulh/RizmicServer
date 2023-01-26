@@ -1,22 +1,19 @@
-import { NextFunction, Request, Response } from "express";
-import { rateLimiter } from "../server";
-
-
-
+import { NextFunction, Request, Response } from 'express';
+import { rateLimiter } from '../limiterInstances';
 
 const rateLimiterMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
+    req: Request,
+    res: Response,
+    next: NextFunction
 ) => {
-  rateLimiter
-      .consume(req.ip)
-      .then(() => {
-          next();
-      })
-      .catch((_) => {
-          res.status(429).send('Too Many Requests');
-      });
+    rateLimiter
+        .consume(req.ip)
+        .then(() => {
+            next();
+        })
+        .catch((_) => {
+            res.status(429).send('Too Many Requests');
+        });
 };
 
-export default rateLimiterMiddleware
+export default rateLimiterMiddleware;
