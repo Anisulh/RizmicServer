@@ -7,6 +7,7 @@ import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import './process';
 import rateLimiterMiddleware from './middleware/rateLimiter';
+import clothesRouter from './components/clothes/route';
 
 const app: Application = express();
 
@@ -20,7 +21,7 @@ const options: CorsOptions = {
 
 app.use(cors(options));
 app.use(helmet());
-app.disable('x-powered-by')
+app.disable('x-powered-by');
 
 app.use(rateLimiterMiddleware);
 
@@ -29,6 +30,7 @@ app.use(express.json());
 
 //routing
 app.use('/user', userRouter);
+app.use('/clothes', clothesRouter);
 
 //router errorhandling
 app.use(routeError);
