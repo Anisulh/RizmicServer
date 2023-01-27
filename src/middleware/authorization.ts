@@ -24,8 +24,13 @@ export const authorization = async (
             const decodedToken = jwt.verify(token, config.jwtSecret) as {
                 id: string;
             };
-            req.user = await User.findById(decodedToken.id);
-            next();
+            if (decodedToken.id) {
+                req.user = await User.findById(decodedToken.id);
+                next();
+            } else {
+                const appError = new AppError({name: 'Missing element in JWT', description: 'No _id field in JWT', httpCode:HttpCode.BAD_REQUEST})
+                errorHandler.handleError(appError, res)
+            }
         } catch (error) {
             if (
                 error instanceof TokenExpiredError ||
