@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AppError, errorHandler, HttpCode } from '../../library/errorHandler';
-import User from './model';
+import User, { ResetToken } from './model';
 import logger from '../../library/logger';
 import config from '../../config/config';
 import {
@@ -9,6 +9,11 @@ import {
 } from '../../library/limiterInstances';
 import { googleLogin, googleRegister } from './services/googleAuth';
 import { emailLogin, emailRegister } from './services/emailAuth';
+import * as crypto from 'crypto';
+import bcrypt from 'bcrypt';
+import { any } from 'joi';
+import sendEmail from './sendEmails';
+import resetPassword from './ResetPassword/resetPassword';
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
@@ -122,14 +127,52 @@ export const loginUser = async (req: Request, res: Response) => {
 
 export const forgotUserPassword = async (req: Request, res: Response) => {
     try {
-        const {email} = req.body;
+        const { email } = req.body;
         const existingUser = await User.findOne({ email });
-        if (!existingUser || !email){
-            res.status(400).send("User does not exist");
+        if (!existingUser) {
+            const error = new AppError({
+                httpCode: HttpCode.BAD_REQUEST,
+                description: 'Error finding user'
+            });
+            errorHandler.handleError(error, res);
         }
-        
-    } 
-    catch (error) {
-        return;
+        let token = await ResetToken.findOne({ userID: existingUser?._id });
+        if (token) {
+            await token.deleteOne();
+        }
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const hash = await bcrypt.hash(resetToken, 10);
+
+        await new ResetToken({
+            userId: existingUser?._id,
+            token: hash,
+            createdAt: Date.now()
+        }).save();
+
+        const link = `localhost:5173/passwordReset?token=${resetToken}&id=${existingUser?._id}`;
+        const success = await sendEmail(
+            email,
+            'Password Reset Request',
+            { name: existingUser?.firstName, link: link },
+            './requestResetPassword.handlebars'
+        );
+        if (success) {
+            res.status(200).json({ message: 'Successful password reset sent' });
+        } else {
+            logger.error('Unable to send mail');
+        }
+    } catch (error) {
+        const criticalError = new Error('Error sending email from controller');
+        errorHandler.handleError(criticalError, res);
     }
-}
+};
+
+export const resetPasswordController = async (req: Request, res: Response) => {
+    const resetPasswordService = await resetPassword(
+        req.body.userId,
+        req.body.token,
+        req.body.password,
+        res
+    );
+    return res.status(200).json({ message: resetPasswordService });
+};
