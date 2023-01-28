@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { ObjectSchema, ValidationError } from 'joi';
+import { isGoogleToken } from '../library/isGoogleToken';
 import { AppError, errorHandler, HttpCode } from '../library/errorHandler';
 
 import logger from '../library/logger';
@@ -7,10 +8,13 @@ import logger from '../library/logger';
 export const reqValidation = (schema: ObjectSchema) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
-            if (
+            const token: string | null =
                 req.headers['authorization'] &&
                 req.headers['authorization'].split(' ')[0] === 'Bearer'
-            ) {
+                    ? req.headers['authorization'].split(' ')[1]
+                    : null;
+
+            if (await isGoogleToken(token)) {
                 next();
             } else {
                 await schema.validateAsync(req.body);
