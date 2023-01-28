@@ -15,7 +15,9 @@ const config = {
     maxWrongAttemptsByIPperDay:
         process.env.MAX_WRONG_ATTEMPTS_BY_IP_PER_DAY || 1,
     maxConsecutiveFailsByEmailAndIP:
-        process.env.MAX_CONSECUTIVE_FAILS_BY_EMAIL_AND_IP || 1
+        process.env.MAX_CONSECUTIVE_FAILS_BY_EMAIL_AND_IP || 1,
+    googleEmailSender: process.env.GOOGLE_EMAIL_SENDER || '',
+    googleEmailSenderPassword: process.env.GOOGLE_EMAIL_SENDER_PASSWORD || ''
 };
 
 export default config;
