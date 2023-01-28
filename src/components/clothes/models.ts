@@ -41,5 +41,5 @@ const clothesSchema = new Schema(
     { timestamps: true }
 );
 
-const Clothes = mongoose.model('User', clothesSchema);
+const Clothes = mongoose.model('Clothes', clothesSchema);
 export default Clothes;

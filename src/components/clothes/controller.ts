@@ -16,7 +16,7 @@ export const getAllClothes = async (req: Request, res: Response) => {
 export const createClothes = async (req: Request, res: Response) => {
     try {
         const { _id } = req.user;
-        const clothesData = { ...req.body, _id };
+        const clothesData = { ...req.body, userID: _id };
         const newClothes = await Clothes.create(clothesData);
         if (newClothes) {
             res.status(201).json(newClothes);
@@ -38,7 +38,8 @@ export const getSpecificClothes = async (req: Request, res: Response) => {
         const clothesId = req.params.clothesId;
 
         const requestedClothes = await Clothes.findById(clothesId);
-        if (requestedClothes && requestedClothes.userID === _id) {
+
+        if (String(requestedClothes?.userID) === String(_id)) {
             res.status(200).json(requestedClothes);
         } else {
             const appError = new AppError({
@@ -62,11 +63,16 @@ export const updateClothes = async (req: Request, res: Response) => {
         const { _id } = req.user;
         const clothesId = req.params.clothesId;
         const selectedClothes = await Clothes.findById(clothesId);
-        if (selectedClothes && selectedClothes.userID === _id) {
+        if (
+            selectedClothes &&
+            String(selectedClothes?.userID) === String(_id)
+        ) {
             const updatedClothes = await Clothes.findByIdAndUpdate(
                 clothesId,
-                req.body
+                req.body,
+                { new: true }
             );
+
             res.status(200).json(updatedClothes);
         } else {
             const appError = new AppError({
@@ -90,14 +96,17 @@ export const deleteClothes = async (req: Request, res: Response) => {
         const { _id } = req.user;
         const clothesId = req.params.clothesId;
         const selectedClothes = await Clothes.findById(clothesId);
-        if (selectedClothes && selectedClothes.userID === _id) {
+        if (
+            selectedClothes &&
+            String(selectedClothes?.userID) === String(_id)
+        ) {
             await selectedClothes.delete();
             res.status(200).json({ id: clothesId });
         } else {
             const appError = new AppError({
                 name: 'Unauthorized update',
                 description:
-                    'Wser token does not match the associated user of the clothes',
+                    'User token does not match the associated user of the clothes',
                 httpCode: HttpCode.UNAUTHORIZED
             });
             errorHandler.handleError(appError, res);
