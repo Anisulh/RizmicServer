@@ -13,8 +13,14 @@ const existingUser = {
     password: '1234567aA'
 };
 
+const invalidClothes = {
+    bodyLocation: ['upperBody'],
+    type: 'sweater',
+    specificType: 'mockNeck'
+};
+
 const nonExistingClothes = {
-    bodyLocation: 'upperBody',
+    bodyLocation: ['upperBody'],
     type: 'sweater',
     specificType: 'mockNeck',
     color: 'black'
@@ -113,6 +119,13 @@ describe('Create new clothes', () => {
             createdAt: expect.any(String),
             updatedAt: expect.any(String)
         });
+    });
+    it('Should return 400 when a required field is missing', async () => {
+        return await request(app)
+            .post('/clothes/')
+            .set('Authorization', `Bearer ${token}`)
+            .send(invalidClothes)
+            .expect(400);
     });
 });
 
