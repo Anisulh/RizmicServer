@@ -107,6 +107,7 @@ export const loginUser = async (req: Request, res: Response) => {
             }
         }
     } catch (error) {
+        console.log(error);
         if (error instanceof Error) {
             logger.error(error);
             errorHandler.handleError(error, res);
