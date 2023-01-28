@@ -21,7 +21,7 @@ interface IUser {
     token?: string;
 }
 
-const verifyGoogleToken = async (token: string) => {
+export const verifyGoogleToken = async (token: string) => {
     const ticket = await client.verifyIdToken({
         idToken: token,
         audience: config.googleClientID
