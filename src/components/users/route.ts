@@ -8,11 +8,11 @@ import {
 } from './controller';
 import { loginSchema, registerSchema } from './joiSchema';
 
-const router = express.Router();
+const userRouter = express.Router();
 
-router.post('/register', reqValidation(registerSchema), registerUser);
-router.post('/login', reqValidation(loginSchema), loginUser);
-router.post('/forgotpassword', forgotUserPassword);
-router.post('/passwordReset', resetPasswordController);
+userRouter.post('/register', reqValidation(registerSchema), registerUser);
+userRouter.post('/login', reqValidation(loginSchema), loginUser);
+userRouter.post('/forgotpassword', forgotUserPassword);
+userRouter.post('/passwordReset', resetPasswordController);
 
-export default router;
+export default userRouter;

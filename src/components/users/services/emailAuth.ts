@@ -75,15 +75,18 @@ export const emailLogin = async (
             });
             logger.error(error);
             errorHandler.handleError(error, res);
+            return;
         } catch (error: any) {
             if (error instanceof Error) {
                 errorHandler.handleError(error, res);
+                return;
             } else {
                 res.set(
                     'Retry-After',
                     String(Math.round(error.msBeforeNext / 1000) || 1)
                 );
                 res.status(429).send('Too Many Requests');
+                return;
             }
         }
     }

@@ -17,7 +17,7 @@ const existingUserLogin = {
 const invalidUserLogin = {
     email: 'thomashatek@gmail.com',
     password: '1234567aA2'
-}
+};
 const nonExistingUser = {
     firstName: 'Rod',
     lastName: 'Chainmic',
@@ -31,7 +31,7 @@ const nonExistingUserLogin = {
 };
 
 beforeEach(async () => {
-    await redis.flushall('ASYNC')
+    await redis.flushall('ASYNC');
     await User.deleteMany();
     const newUser = { ...existingUser };
     const salt = await bcrypt.genSalt(10);
