@@ -30,9 +30,7 @@ jobs:
       env:
         NODE_ENV: ${{secrets.NODE_ENV}}
         PORT: ${{secrets.PORT}}
-        DB_NAME: ${{secrets.DB_NAME}}
-        MONGO_USERNAME: ${{secrets.MONGO_USERNAME}}
-        MONGO_PASSWORD: ${{secrets.MONGO_PASSWORD}}
+        MONGO_URL: ${{secrets.MONGO_URL}}
         JWT_SECRET: ${{secrets.JWT_SECRET}}
         MAX_WRONG_ATTEMPTS_BY_IP_PER_DAY: ${{secrets.MAX_WRONG_ATTEMPTS_BY_IP_PER_DAY}}
         MAX_CONSECUTIVE_FAILS_BY_EMAIL_AND_IP: ${{secrets.MAX_CONSECUTIVE_FAILS_BY_EMAIL_AND_IP}}
