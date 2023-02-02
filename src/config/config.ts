@@ -15,6 +15,10 @@ const config = {
         process.env.MAX_WRONG_ATTEMPTS_BY_IP_PER_DAY || 1,
     maxConsecutiveFailsByEmailAndIP:
         process.env.MAX_CONSECUTIVE_FAILS_BY_EMAIL_AND_IP || 1,
+    hotmail: {
+        hotmailEmailSender: process.env.HOTMAIL_EMAIL || '',
+        hotmailPassword: process.env.HOTMAIL_PASSWORD || ''
+    },
     google: {
         googleClientID: process.env.GOOGLE_CLIENT_ID || '',
         googleEmailSender: process.env.GOOGLE_EMAIL_SENDER || '',
