@@ -5,11 +5,8 @@ import {
     errorHandler,
     HttpCode
 } from '../../../library/errorHandler';
-import logger from '../../../library/logger';
-import * as crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import sendEmail from '../sendEmails';
-import { string } from 'joi';
 
 const resetPassword = async (
     userId: string,
@@ -17,13 +14,15 @@ const resetPassword = async (
     password: string,
     res: Response
 ) => {
-    let passwordResetToken = await ResetToken.findOne({ userId });
+    try {
+        let passwordResetToken = await ResetToken.findOne({ userId });
     if (!passwordResetToken) {
         const appError = new AppError({
             httpCode: HttpCode.NOT_FOUND,
             description: 'Could not find reset token'
         });
         errorHandler.handleError(appError, res);
+        return;
     } else {
         const isValid = await bcrypt.compare(token, passwordResetToken.token);
         if (!isValid) {
@@ -39,7 +38,7 @@ const resetPassword = async (
         if (user) {
             sendEmail(
                 user.email,
-                'Password Reset Successfully',
+                'Password Reset Successful',
                 {
                     name: user?.firstName
                 },
@@ -53,7 +52,12 @@ const resetPassword = async (
                 description: 'User does not exist'
             });
             errorHandler.handleError(appError, res);
+            return;
         }
+    }
+    } catch (error) {
+        const criticalError = new Error('Critical Error - Error reseting password');
+        errorHandler.handleError(criticalError);
     }
 };
 

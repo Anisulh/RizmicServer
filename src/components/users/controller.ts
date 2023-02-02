@@ -112,7 +112,6 @@ export const loginUser = async (req: Request, res: Response) => {
             }
         }
     } catch (error) {
-        console.log(error);
         if (error instanceof Error) {
             logger.error(error);
             errorHandler.handleError(error, res);
@@ -131,7 +130,6 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
         const { email } = req.body;
         const existingUser = await User.findOne({ email });
         if (!existingUser) {
-            console.log('user does not exist test');
             const error = new AppError({
                 httpCode: HttpCode.BAD_REQUEST,
                 description: 'Error finding user'
@@ -139,36 +137,25 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
             errorHandler.handleError(error, res);
             return;
         }
-        console.log('user does exist test');
         let token = await ResetToken.findOne({ userID: existingUser?._id });
         if (token) {
             await token.deleteOne();
         }
         const resetToken = crypto.randomBytes(32).toString('hex');
         const hash = await bcrypt.hash(resetToken, 10);
-
-        console.log({
-            userID: existingUser?._id,
-            token: hash,
-            createdAt: Date.now()
-        });
-        console.log('before saving resetToken');
         const resetTokenInstance = await ResetToken.create({
             userID: existingUser?._id,
             token: hash,
             createdAt: Date.now()
         });
-        console.log(resetTokenInstance);
 
         const link = `localhost:5173/passwordReset?token=${resetToken}&id=${existingUser?._id}`;
-        console.log('before send email func');
         const success = await sendEmail(
             email,
             'Password Reset Request',
             { name: existingUser?.firstName, link: link },
             './ResetPassword/requestResetPassword.handlebars'
         );
-        console.log('after send email func', success);
         if (success) {
             res.status(200).json({ message: 'Successful password reset sent' });
         } else {
