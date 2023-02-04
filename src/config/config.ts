@@ -15,7 +15,12 @@ const config = {
     maxWrongAttemptsByIPperDay:
         process.env.MAX_WRONG_ATTEMPTS_BY_IP_PER_DAY || 1,
     maxConsecutiveFailsByEmailAndIP:
-        process.env.MAX_CONSECUTIVE_FAILS_BY_EMAIL_AND_IP || 1
+        process.env.MAX_CONSECUTIVE_FAILS_BY_EMAIL_AND_IP || 1,
+    cloudinary: {
+        name: process.env.CLOUDINARY_NAME || '',
+        api_key: process.env.CLOUDINARY_API_KEY || '',
+        api_secret: process.env.CLOUDINARY_API_SECRET || ''
+    }
 };
 
 export default config;
