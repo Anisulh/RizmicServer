@@ -9,7 +9,7 @@ const DB = process.env.DB_NAME || '';
 const config = {
     env: process.env.NODE_ENV || 'development',
     port: process.env.PORT || 6000,
-    mongoDBUrl: `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@databasecluster.2cgf66k.mongodb.net/${DB}?retryWrites=true&w=majority`,
+    mongoDBUrl: process.env.MONGO_URL || `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@databasecluster.2cgf66k.mongodb.net/${DB}?retryWrites=true&w=majority`,
     jwtSecret: process.env.JWT_SECRET || '',
     maxWrongAttemptsByIPperDay:
         process.env.MAX_WRONG_ATTEMPTS_BY_IP_PER_DAY || 1,
@@ -28,6 +28,11 @@ const config = {
         googleEmailClientSecret: process.env.GOOGLE_EMAIL_CLIENT_SECRET || '',
         googleEmailRefreshToken: process.env.GOOGLE_EMAIL_REFRESH_TOKEN || '',
         googleEmailRedirectURI: process.env.GOOGLE_EMAIL_REDIRECT_URI || ''
+    },
+    cloudinary: {
+        name: process.env.CLOUDINARY_NAME || '',
+        api_key: process.env.CLOUDINARY_API_KEY || '',
+        api_secret: process.env.CLOUDINARY_API_SECRET || ''
     }
 };
 

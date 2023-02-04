@@ -15,21 +15,23 @@ const existingUser = {
 
 const invalidClothes = {
     bodyLocation: ['upperBody'],
-    type: 'sweater',
-    specificType: 'mockNeck'
+    category: 'sweater',
+    variant: 'mockNeck'
 };
 
 const nonExistingClothes = {
     bodyLocation: ['upperBody'],
-    type: 'sweater',
-    specificType: 'mockNeck',
-    color: 'black'
+    category: 'sweater',
+    variant: 'Mock-neck',
+    color: 'black',
+    layerable: true
 };
 const existingClothes = {
     bodyLocation: 'lowerBody',
-    type: 'shirt',
-    specificType: 'buttonDown',
-    color: 'green'
+    category: 'shirt',
+    variant: 'buttonDown',
+    color: 'green',
+    layerable: true
 };
 let token: string | undefined;
 let createdClothesId: Types.ObjectId;
@@ -90,8 +92,9 @@ describe('Get all clothes', () => {
                     _id: expect.any(String),
                     userID: expect.any(String),
                     bodyLocation: expect.arrayContaining([expect.any(String)]),
-                    type: expect.any(String),
-                    specificType: expect.any(String),
+                    category: expect.any(String),
+                    variant: expect.any(String),
+                    layerable: expect.any(Boolean),
                     color: expect.any(String),
                     createdAt: expect.any(String),
                     updatedAt: expect.any(String)
@@ -113,8 +116,9 @@ describe('Create new clothes', () => {
             _id: expect.any(String),
             userID: expect.any(String),
             bodyLocation: expect.arrayContaining([expect.any(String)]),
-            type: expect.any(String),
-            specificType: expect.any(String),
+            category: expect.any(String),
+            variant: expect.any(String),
+            layerable: expect.any(Boolean),
             color: expect.any(String),
             createdAt: expect.any(String),
             updatedAt: expect.any(String)
@@ -141,8 +145,9 @@ describe('Get specific clothes', () => {
             _id: expect.any(String),
             userID: expect.any(String),
             bodyLocation: expect.arrayContaining([expect.any(String)]),
-            type: expect.any(String),
-            specificType: expect.any(String),
+            category: expect.any(String),
+            variant: expect.any(String),
+            layerable: expect.any(Boolean),
             color: expect.any(String),
             createdAt: expect.any(String),
             updatedAt: expect.any(String)
@@ -155,16 +160,17 @@ describe('Updating Clothes', () => {
         const response = await request(app)
             .put(`/clothes/${createdClothesId}`)
             .set('Authorization', `Bearer ${token}`)
-            .send({ color: 'red', type: 'sweater' })
+            .send({ color: 'red', category: 'sweater' })
             .expect(200);
         expect(response.body).toMatchObject({
             __v: 0,
-            _id: createdClothesId,
+            _id: expect.any(String),
             userID: expect.any(String),
             bodyLocation: expect.arrayContaining([expect.any(String)]),
-            type: 'sweater',
-            specificType: expect.any(String),
-            color: 'red',
+            category: expect.any(String),
+            variant: expect.any(String),
+            layerable: expect.any(Boolean),
+            color: expect.any(String),
             createdAt: expect.any(String),
             updatedAt: expect.any(String)
         });
@@ -176,7 +182,6 @@ describe('Deleteing Clothes', () => {
         const response = await request(app)
             .delete(`/clothes/${createdClothesId}`)
             .set('Authorization', `Bearer ${token}`)
-            .send({ color: 'red', type: 'sweater' })
             .expect(200);
 
         expect(response.body).toMatchObject({

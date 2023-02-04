@@ -16,11 +16,22 @@ const clothesSchema = new Schema(
                 enum: ['head', 'upperBody', 'lowerBody', 'feet']
             }
         ],
-        type: {
+        category: {
             required: true,
-            type: String
+            type: String,
+            enum: [
+                'tshirt',
+                'jacket',
+                'sweater',
+                'top',
+                'shirt',
+                'dress',
+                'pants',
+                'skirt',
+                'shorts'
+            ]
         },
-        specificType: {
+        variant: {
             required: true,
             type: String
         },
@@ -28,17 +39,17 @@ const clothesSchema = new Schema(
             required: true,
             type: String
         },
-        size: {
-            required: false,
-            type: String
+        layerable: {
+            required: true,
+            type: Boolean
         },
-
         description: {
             required: false,
             type: String
         }
     },
-    { timestamps: true }
+    { timestamps: true },
+    
 );
 
 const Clothes = mongoose.model('Clothes', clothesSchema);

@@ -1,21 +1,52 @@
 import Joi from 'joi';
 
 export const createClothesSchema = Joi.object({
-    type: Joi.string().alphanum().min(3).max(30).required(),
-    specificType: Joi.string().alphanum().min(3).max(30).required(),
-    bodyLocation: Joi.array()
-        .items(Joi.string().alphanum().min(3).max(30))
+    category: Joi.string()
+        .valid(
+            'tshirt',
+            'jacket',
+            'sweater',
+            'top',
+            'shirt',
+            'dress',
+            'pants',
+            'skirt',
+            'shorts'
+        )
         .required(),
-    color: Joi.string().alphanum().min(3).max(30).required(),
-    size: Joi.string().alphanum().min(3).max(30),
-    description: Joi.string().alphanum().min(3).max(30)
+    variant: Joi.string().min(3).max(30).required(),
+    bodyLocation: Joi.array()
+        .items(
+            Joi.string()
+                .valid('head', 'upperBody', 'lowerBody', 'feet')
+                .min(3)
+                .max(30)
+        )
+        .required(),
+    color: Joi.string().min(3).max(30).required(),
+    layerable: Joi.boolean().required(),
+    description: Joi.string().alphanum().min(3).max(100)
 });
 
 export const updateClothesSchema = Joi.object({
-    type: Joi.string().alphanum().min(3).max(30),
-    specificType: Joi.string().alphanum().min(3).max(30),
-    bodyLocation: Joi.array().items(Joi.string().alphanum().min(3).max(30)),
-    color: Joi.string().alphanum().min(3).max(30),
-    size: Joi.string().alphanum().min(3).max(30),
-    description: Joi.string().alphanum().min(3).max(30)
+    category: Joi.string().valid(
+        'tshirt',
+        'jacket',
+        'sweater',
+        'top',
+        'shirt',
+        'dress',
+        'pants',
+        'skirt',
+        'shorts'
+    ),
+    variant: Joi.string().min(3).max(30),
+    bodyLocation: Joi.array().items(
+        Joi.string()
+            .valid('head', 'upperBody', 'lowerBody', 'feet')
+            .min(3)
+            .max(30)
+    ),
+    color: Joi.string().min(3).max(30),
+    description: Joi.string().alphanum().min(3).max(100)
 });
