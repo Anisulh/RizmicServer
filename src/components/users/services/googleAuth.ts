@@ -22,12 +22,16 @@ interface IUser {
 }
 
 export const verifyGoogleToken = async (token: string) => {
-    const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: config.googleClientID
-    });
-    const payload = ticket.getPayload();
-    return payload;
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: config.googleClientID
+        });
+        const payload = ticket.getPayload();
+        return payload;
+    } catch (error) {
+        return null;
+    }
 };
 
 export const googleRegister = async (googleToken: string, res: Response) => {

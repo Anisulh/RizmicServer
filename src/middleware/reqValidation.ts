@@ -1,9 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { ObjectSchema, ValidationError } from 'joi';
-import { isGoogleToken } from '../library/isGoogleToken';
 import { AppError, errorHandler, HttpCode } from '../library/errorHandler';
-
 import logger from '../library/logger';
+import { verifyGoogleToken } from '../components/users/services/googleAuth';
 
 export const reqValidation = (schema: ObjectSchema) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -14,9 +13,12 @@ export const reqValidation = (schema: ObjectSchema) => {
                     ? req.headers['authorization'].split(' ')[1]
                     : null;
 
-            if (await isGoogleToken(token)) {
+            const googleToken = token && await verifyGoogleToken(token) || false
+            console.log(googleToken)
+            if  (googleToken) {
                 next();
             } else {
+                console.log('validating')
                 await schema.validateAsync(req.body);
                 next();
             }
@@ -27,7 +29,7 @@ export const reqValidation = (schema: ObjectSchema) => {
                     new AppError({
                         name: 'JOI validation Error',
                         httpCode: HttpCode.BAD_REQUEST,
-                        description: 'Invalid credentials passed'
+                        description: 'One or more fields submitted was not valid'
                     }),
                     res
                 );
@@ -37,7 +39,7 @@ export const reqValidation = (schema: ObjectSchema) => {
                 } else if (error instanceof Error) {
                     errorHandler.handleError(error, res);
                 } else {
-                    logger.error('Unable to display reason for error');
+                    logger.error('Unable to display reason for reqValidation error');
                 }
             }
         }
