@@ -4,6 +4,10 @@ const { Schema } = mongoose;
 
 const clothesSchema = new Schema(
     {
+        cloudinaryID: {
+            required: false,
+            type: String
+        },
         userID: {
             required: false,
             type: Types.ObjectId,
@@ -43,13 +47,16 @@ const clothesSchema = new Schema(
             required: true,
             type: Boolean
         },
+        image: {
+            required: false,
+            type: String
+        },
         description: {
             required: false,
             type: String
         }
     },
-    { timestamps: true },
-    
+    { timestamps: true }
 );
 
 const Clothes = mongoose.model('Clothes', clothesSchema);

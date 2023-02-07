@@ -26,18 +26,33 @@ const nonExistingClothes = {
     color: 'black',
     layerable: true
 };
+const nonExistingClothesWithImage = {
+    category: 'sweater',
+    variant: 'Mock-neck',
+    color: 'black',
+    layerable: true
+};
 const existingClothes = {
-    bodyLocation: 'lowerBody',
+    bodyLocation: ['lowerBody'],
     category: 'shirt',
     variant: 'buttonDown',
     color: 'green',
     layerable: true
 };
+const existingClothesWithImage = {
+    bodyLocation: ['lowerBody'],
+    category: 'pants',
+    variant: 'Joggers',
+    color: 'blue',
+    layerable: false
+};
 let token: string | undefined;
 let createdClothesId: Types.ObjectId;
+let createdClothesIdWithImage: Types.ObjectId
 let userID: Types.ObjectId;
 
 beforeAll(async () => {
+    await Clothes.deleteMany();
     const newUser = { ...existingUser };
     const userInDB = await User.findOne({ email: existingUser.email }).lean();
     if (!userInDB) {
@@ -105,24 +120,53 @@ describe('Get all clothes', () => {
 });
 
 describe('Create new clothes', () => {
-    it('Should return 201 and clothes instance', async () => {
+    it('Should return 201 and clothes instance along with image link', async () => {
+        const response = await request(app)
+            .post('/clothes/')
+            .set('Authorization', `Bearer ${token}`)
+            .set('Content-Type', 'multipart/form-data')
+            .field(nonExistingClothesWithImage)
+            .field('bodyLocation[]', 'upperBody')
+            .attach('image', `${__dirname}/image.jpg`)
+            .expect(201);
+        expect(response.body).toEqual(
+            expect.objectContaining({
+                __v: 0,
+                _id: expect.any(String),
+                cloudinaryID: expect.any(String),
+                userID: expect.any(String),
+                bodyLocation: expect.arrayContaining([expect.any(String)]),
+                category: expect.any(String),
+                variant: expect.any(String),
+                layerable: expect.any(Boolean),
+                color: expect.any(String),
+                image: expect.any(String),
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String)
+            })
+        );
+         createdClothesIdWithImage = response.body._id
+    });
+    it('Should return 201 and clothes instance without image link', async () => {
         const response = await request(app)
             .post('/clothes/')
             .set('Authorization', `Bearer ${token}`)
             .send(nonExistingClothes)
             .expect(201);
-        expect(response.body).toMatchObject({
-            __v: 0,
-            _id: expect.any(String),
-            userID: expect.any(String),
-            bodyLocation: expect.arrayContaining([expect.any(String)]),
-            category: expect.any(String),
-            variant: expect.any(String),
-            layerable: expect.any(Boolean),
-            color: expect.any(String),
-            createdAt: expect.any(String),
-            updatedAt: expect.any(String)
-        });
+        expect(response.body).toEqual(
+            expect.objectContaining({
+                __v: 0,
+                _id: expect.any(String),
+                userID: expect.any(String),
+                bodyLocation: expect.arrayContaining([expect.any(String)]),
+                category: expect.any(String),
+                variant: expect.any(String),
+                layerable: expect.any(Boolean),
+                color: expect.any(String),
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String)
+            })
+        );
     });
     it('Should return 400 when a required field is missing', async () => {
         return await request(app)
@@ -156,24 +200,53 @@ describe('Get specific clothes', () => {
 });
 
 describe('Updating Clothes', () => {
-    it('Should return 200 and updated clothes instance', async () => {
+    it('Should return 200 and updated clothes instance that didnt have image with image', async () => {
         const response = await request(app)
             .put(`/clothes/${createdClothesId}`)
             .set('Authorization', `Bearer ${token}`)
-            .send({ color: 'red', category: 'sweater' })
+            .field({ color: 'red', category: 'sweater' })
+            .attach('image', `${__dirname}/image.jpg`)
             .expect(200);
-        expect(response.body).toMatchObject({
-            __v: 0,
-            _id: expect.any(String),
-            userID: expect.any(String),
-            bodyLocation: expect.arrayContaining([expect.any(String)]),
-            category: expect.any(String),
-            variant: expect.any(String),
-            layerable: expect.any(Boolean),
-            color: expect.any(String),
-            createdAt: expect.any(String),
-            updatedAt: expect.any(String)
-        });
+        expect(response.body).toEqual(
+            expect.objectContaining({
+                __v: 0,
+                _id: expect.any(String),
+                cloudinaryID: expect.any(String),
+                userID: expect.any(String),
+                bodyLocation: expect.arrayContaining([expect.any(String)]),
+                category: expect.any(String),
+                variant: expect.any(String),
+                layerable: expect.any(Boolean),
+                color: expect.any(String),
+                image: expect.any(String),
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String)
+            })
+        );
+    });
+    it('Should return 200 and updated clothes instance, replacing old image with new image', async () => {
+        const response = await request(app)
+            .put(`/clothes/${createdClothesIdWithImage}`)
+            .set('Authorization', `Bearer ${token}`)
+            .field({ color: 'red', category: 'sweater' })
+            .attach('image', `${__dirname}/image.jpg`)
+            .expect(200);
+        expect(response.body).toEqual(
+            expect.objectContaining({
+                __v: 0,
+                _id: expect.any(String),
+                cloudinaryID: expect.any(String),
+                userID: expect.any(String),
+                bodyLocation: expect.arrayContaining([expect.any(String)]),
+                category: expect.any(String),
+                variant: expect.any(String),
+                layerable: expect.any(Boolean),
+                color: expect.any(String),
+                image: expect.any(String),
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String)
+            })
+        );
     });
 });
 

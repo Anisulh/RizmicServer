@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AppError, errorHandler, HttpCode } from '../../library/errorHandler';
 import Clothes from './models';
+import { deleteFromCloudinary, uploadToCloudinary } from './upload.service';
 
 export const getAllClothes = async (req: Request, res: Response) => {
     try {
@@ -16,7 +17,17 @@ export const getAllClothes = async (req: Request, res: Response) => {
 export const createClothes = async (req: Request, res: Response) => {
     try {
         const { _id } = req.user;
+        let imageUpload;
+        if (req.file) {
+            const buffer = req.file.buffer.toString('base64');
+            imageUpload = await uploadToCloudinary(buffer);
+        }
+
         const clothesData = { ...req.body, userID: _id };
+        if (imageUpload) {
+            clothesData['cloudinaryID'] = imageUpload.public_id;
+            clothesData['image'] = imageUpload.secure_url;
+        }
         const newClothes = await Clothes.create(clothesData);
         if (newClothes) {
             res.status(201).json(newClothes);
@@ -63,13 +74,27 @@ export const updateClothes = async (req: Request, res: Response) => {
         const { _id } = req.user;
         const clothesId = req.params.clothesId;
         const selectedClothes = await Clothes.findById(clothesId);
+        let imageUpload;
         if (
             selectedClothes &&
             String(selectedClothes?.userID) === String(_id)
         ) {
+            if (selectedClothes.cloudinaryID && req.file) {
+                await deleteFromCloudinary(selectedClothes.cloudinaryID);
+                const buffer = req.file.buffer.toString('base64');
+                imageUpload = await uploadToCloudinary(buffer);
+            } else if (req.file) {
+                const buffer = req.file.buffer.toString('base64');
+                imageUpload = await uploadToCloudinary(buffer);
+            }
+            let updateData = { ...req.body };
+            if (imageUpload) {
+                updateData['image'] = imageUpload.secure_url;
+                updateData['cloudinaryID'] = imageUpload.public_id;
+            }
             const updatedClothes = await Clothes.findByIdAndUpdate(
                 clothesId,
-                req.body,
+                updateData,
                 { new: true }
             );
 
@@ -100,6 +125,9 @@ export const deleteClothes = async (req: Request, res: Response) => {
             selectedClothes &&
             String(selectedClothes?.userID) === String(_id)
         ) {
+            if (selectedClothes.cloudinaryID) {
+                await deleteFromCloudinary(selectedClothes.cloudinaryID);
+            }
             await selectedClothes.delete();
             res.status(200).json({ id: clothesId });
         } else {
