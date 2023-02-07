@@ -14,11 +14,9 @@ export const reqValidation = (schema: ObjectSchema) => {
                     : null;
 
             const googleToken = token && await verifyGoogleToken(token) || false
-            console.log(googleToken)
             if  (googleToken) {
                 next();
             } else {
-                console.log('validating')
                 await schema.validateAsync(req.body);
                 next();
             }
