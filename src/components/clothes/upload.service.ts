@@ -1,30 +1,31 @@
-import cloudinary from 'cloudinary'
-import multer from 'multer';
+import config from '../../config/config';
+import cloudinary from '../../config/cloudinary.config';
 import { errorHandler } from '../../library/errorHandler';
 
-cloudinary.v2.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-const memoryStorage = multer.memoryStorage();
-
-const upload = multer({
-    storage: memoryStorage
-});
-
-const uploadToCloudinary = async (fileString: any, format: any) => {
+export const uploadToCloudinary = async (buffer: string) => {
     try {
-        const { uploader } = cloudinary.v2;
-
-        const res = await uploader.upload(
-            `data:image/${format};base64,${fileString}`
+        const res = await cloudinary.uploader.upload(
+            'data:image/png;base64,' + buffer,
+            { upload_preset: config.cloudinary.preset }
         );
 
         return res;
     } catch (error) {
-      const criticalError = new Error(`Unable to upload images due to the following error: ${error}`)
-        errorHandler.handleError(criticalError)
+        const criticalError = new Error(
+            `Unable to upload images due to the following error: ${error}`
+        );
+        errorHandler.handleError(criticalError);
     }
+};
+
+export const deleteFromCloudinary = async (cloudinaryID: string) => {
+    try {
+        await cloudinary.uploader.destroy(cloudinaryID)
+    } catch (error) {
+        const criticalError = new Error(
+            `Unable to remove images due to the following error: ${error}`
+        );
+        errorHandler.handleError(criticalError);
+    }
+    
 };
