@@ -10,7 +10,7 @@ import {
 } from '../../../library/errorHandler';
 import { generateToken } from './jwt';
 
-const client = new OAuth2Client(config.googleClientID);
+const client = new OAuth2Client(config.google.googleClientID);
 interface IUser {
     _id: Types.ObjectId;
     firstName: string;
@@ -25,7 +25,7 @@ export const verifyGoogleToken = async (token: string) => {
     try {
         const ticket = await client.verifyIdToken({
             idToken: token,
-            audience: config.googleClientID
+            audience: config.google.googleClientID
         });
         const payload = ticket.getPayload();
         return payload;

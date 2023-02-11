@@ -1,8 +1,9 @@
 import request from 'supertest';
 import app from '../../server';
-import User from './model';
+import User, { ResetToken } from './model';
 import bcrypt from 'bcrypt';
 import { redis } from '../../library/limiterInstances';
+import { Types } from 'mongoose';
 
 const existingUser = {
     firstName: 'Thomas',
@@ -33,6 +34,7 @@ const nonExistingUserLogin = {
 beforeEach(async () => {
     await redis.flushall('ASYNC');
     await User.deleteMany();
+    await ResetToken.deleteMany();
     const newUser = { ...existingUser };
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(existingUser.password, salt);
@@ -99,5 +101,21 @@ describe('User login', () => {
             .post('/user/login')
             .send(invalidUserLogin);
         expect(secondResponse.statusCode).toBe(429);
+    });
+});
+
+describe('Forgot password', () => {
+    it('Should return 400 if email does not exist while trying to reset password', async () => {
+        return request(app)
+            .post('/user/forgotpassword')
+            .send({ email: nonExistingUserLogin.email })
+            .expect(400);
+    });
+    it('Should return 200 if email was sent to reset password', async () => {
+        const response = await request(app)
+            .post('/user/forgotpassword')
+            .send({ email: existingUser.email })
+            .expect(200);
+        console.log(response.body);
     });
 });

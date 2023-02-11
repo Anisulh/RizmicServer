@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AppError, errorHandler, HttpCode } from '../../library/errorHandler';
-import User from './model';
+import User, { ResetToken } from './model';
 import logger from '../../library/logger';
 import config from '../../config/config';
 import {
@@ -9,6 +9,12 @@ import {
 } from '../../library/limiterInstances';
 import { googleLogin, googleRegister } from './services/googleAuth';
 import { emailLogin, emailRegister } from './services/emailAuth';
+import * as crypto from 'crypto';
+import bcrypt from 'bcrypt';
+import { any } from 'joi';
+import sendEmail from './sendEmails';
+import resetPassword from './ResetPassword/resetPassword';
+import { forgotPasswordTemplate } from './ResetPassword/htmlTemplates';
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
@@ -107,7 +113,6 @@ export const loginUser = async (req: Request, res: Response) => {
             }
         }
     } catch (error) {
-        console.log(error);
         if (error instanceof Error) {
             logger.error(error);
             errorHandler.handleError(error, res);
@@ -119,4 +124,59 @@ export const loginUser = async (req: Request, res: Response) => {
             errorHandler.handleError(unknownError, res);
         }
     }
+};
+
+export const forgotUserPassword = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        const existingUser = await User.findOne({ email });
+        if (!existingUser) {
+            const error = new AppError({
+                httpCode: HttpCode.BAD_REQUEST,
+                description: 'Error finding user'
+            });
+            errorHandler.handleError(error, res);
+            return;
+        }
+        let token = await ResetToken.findOne({ userID: existingUser?._id });
+        if (token) {
+            await token.deleteOne();
+        }
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const hash = await bcrypt.hash(resetToken, 10);
+        const resetTokenInstance = await ResetToken.create({
+            userID: existingUser?._id,
+            token: hash,
+            createdAt: Date.now()
+        });
+        const link = `localhost:5173/passwordreset?token=${resetToken}&id=${existingUser?._id}`;
+        const emailTemplate = forgotPasswordTemplate(
+            existingUser?.firstName,
+            link
+        );
+        const success = await sendEmail(
+            email,
+            'Password Reset Request',
+            { name: existingUser?.firstName, link: link },
+            emailTemplate
+        );
+        if (success) {
+            res.status(200).json({ message: 'Successful password reset sent' });
+        } else {
+            logger.error('Unable to send mail');
+        }
+    } catch (error) {
+        const criticalError = new Error('Error sending email from controller');
+        errorHandler.handleError(criticalError, res);
+    }
+};
+
+export const resetPasswordController = async (req: Request, res: Response) => {
+    const resetPasswordService = await resetPassword(
+        req.body.userId,
+        req.body.token,
+        req.body.password,
+        res
+    );
+    return res.status(200).json({ message: resetPasswordService });
 };
