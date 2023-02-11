@@ -13,6 +13,6 @@ const userRouter = express.Router();
 userRouter.post('/register', reqValidation(registerSchema), registerUser);
 userRouter.post('/login', reqValidation(loginSchema), loginUser);
 userRouter.post('/forgotpassword', forgotUserPassword);
-userRouter.post('/passwordReset', resetPasswordController);
+userRouter.post('/passwordreset', resetPasswordController);
 
 export default userRouter;
