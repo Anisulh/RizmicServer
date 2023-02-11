@@ -1,7 +1,4 @@
 import nodemailer from 'nodemailer';
-import handlebars from 'handlebars';
-import * as fs from 'fs';
-import * as path from 'path';
 import { AppError, errorHandler } from '../../library/errorHandler';
 import config from '../../config/config';
 
@@ -22,26 +19,21 @@ const sendEmail = async (
                 rejectUnauthorized: false
             },
             auth: {
-               user: config.hotmail.hotmailEmailSender,
-               pass: config.hotmail.hotmailPassword
+                user: config.hotmail.hotmailEmailSender,
+                pass: config.hotmail.hotmailPassword
             }
-          }); 
-        const source = fs.readFileSync(path.join(__dirname, template), {
-            encoding: 'utf8'
         });
-        const compiledTemplate = handlebars.compile(source);
         const options = () => {
             return {
                 from: config.hotmail.hotmailEmailSender,
                 to: email,
                 subject: subject,
-                html: compiledTemplate(payload)
+                html: template
             };
         };
         transporter.sendMail(options(), (error) => {
             if (error) {
                 sentMail = false;
-                console.log(error);
                 const criticalError = new Error(
                     `Error - could not send email due to: ${error}`
                 );
