@@ -14,6 +14,7 @@ import bcrypt from 'bcrypt';
 import { any } from 'joi';
 import sendEmail from './sendEmails';
 import resetPassword from './ResetPassword/resetPassword';
+import { forgotPasswordTemplate } from './ResetPassword/htmlTemplates';
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
@@ -148,13 +149,16 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
             token: hash,
             createdAt: Date.now()
         });
-
-        const link = `localhost:5173/passwordReset?token=${resetToken}&id=${existingUser?._id}`;
+        const link = `localhost:5173/passwordreset?token=${resetToken}&id=${existingUser?._id}`;
+        const emailTemplate = forgotPasswordTemplate(
+            existingUser?.firstName,
+            link
+        );
         const success = await sendEmail(
             email,
             'Password Reset Request',
             { name: existingUser?.firstName, link: link },
-            './ResetPassword/requestResetPassword.handlebars'
+            emailTemplate
         );
         if (success) {
             res.status(200).json({ message: 'Successful password reset sent' });
