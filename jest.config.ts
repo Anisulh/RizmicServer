@@ -12,7 +12,7 @@ const config: Config = {
     coveragePathIgnorePatterns: ['/node_modules/', '/src/config/'],
     coverageProvider: 'v8',
     coverageReporters: ['json', 'text', 'lcov', 'clover'],
-    testTimeout: 40000,
+    testTimeout: 10000,
     verbose: true
 };
 
