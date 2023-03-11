@@ -9,6 +9,11 @@ import {
 } from '../../library/limiterInstances';
 import { googleLogin, googleRegister } from './services/googleAuth';
 import { emailLogin, emailRegister } from './services/emailAuth';
+import bcrypt from 'bcrypt';
+import {
+    deleteFromCloudinary,
+    uploadToCloudinary
+} from '../clothes/upload.service';
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
@@ -107,13 +112,183 @@ export const loginUser = async (req: Request, res: Response) => {
             }
         }
     } catch (error) {
-        console.log(error);
         if (error instanceof Error) {
             logger.error(error);
             errorHandler.handleError(error, res);
         } else {
             const unknownError = new Error(
                 'Unknown error occuring at loginUser controller'
+            );
+            logger.error(unknownError);
+            errorHandler.handleError(unknownError, res);
+        }
+    }
+};
+
+export const updateProfile = async (req: Request, res: Response) => {
+    try {
+        const { firstName, lastName, phoneNumber } = req.body;
+        const { _id } = req.user;
+        const updatedUser = await User.findByIdAndUpdate(
+            _id,
+            { firstName, lastName, phoneNumber },
+            { new: true }
+        );
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        if (error instanceof Error) {
+            logger.error(error);
+            errorHandler.handleError(error, res);
+        } else {
+            const unknownError = new Error(
+                'Unknown error occuring at updateProfile controller'
+            );
+            logger.error(unknownError);
+            errorHandler.handleError(unknownError, res);
+        }
+    }
+};
+
+export const getUser = async (req: Request, res: Response) => {
+    try {
+        const { _id } = req.user;
+        const userInstince = await User.findById(_id).select('-password');
+        if (userInstince) {
+            return res.status(200).json(userInstince);
+        } else {
+            const appError = new AppError({
+                description: 'No user found',
+                httpCode: HttpCode.NOT_FOUND
+            });
+            errorHandler.handleError(appError, res);
+            return;
+        }
+    } catch (error) {
+        if (error instanceof Error) {
+            logger.error(error);
+            errorHandler.handleError(error, res);
+        } else {
+            const unknownError = new Error(
+                'Unknown error occuring at updateProfile controller'
+            );
+            logger.error(unknownError);
+            errorHandler.handleError(unknownError, res);
+        }
+    }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+    try {
+        const { _id } = req.user;
+        const { currentPassword, newPassword } = req.body;
+
+        const userInstince = await User.findById(_id);
+        if (userInstince && userInstince.password) {
+            const isValid = await bcrypt.compare(
+                currentPassword,
+                userInstince.password
+            );
+            if (isValid) {
+                const salt = await bcrypt.genSalt(10);
+                const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+                await User.findByIdAndUpdate(
+                    _id,
+                    { password: hashedPassword },
+                    { new: true }
+                );
+                res.status(200).json({});
+                return;
+            } else {
+                const appError = new AppError({
+                    description: 'Password does not match current password',
+                    httpCode: HttpCode.BAD_REQUEST
+                });
+                errorHandler.handleError(appError, res);
+                return;
+            }
+        } else if (userInstince && userInstince.googleID) {
+            await User.findByIdAndUpdate(
+                _id,
+                { password: newPassword },
+                { new: true }
+            );
+            res.status(200);
+            return;
+        } else {
+            const appError = new AppError({
+                description: 'No user found',
+                httpCode: HttpCode.NOT_FOUND
+            });
+            errorHandler.handleError(appError, res);
+            return;
+        }
+    } catch (error) {
+        if (error instanceof Error) {
+            logger.error(error);
+            errorHandler.handleError(error, res);
+        } else {
+            const unknownError = new Error(
+                'Unknown error occuring at updateProfile controller'
+            );
+            logger.error(unknownError);
+            errorHandler.handleError(unknownError, res);
+        }
+    }
+};
+
+export const updateProfileImage = async (req: Request, res: Response) => {
+    try {
+        const { _id } = req.user;
+        const user = await User.findById(_id);
+        if (!user) {
+            const appError = new AppError({
+                name: 'Unauthorized update',
+                description:
+                    'User token does not match the associated user of the clothes',
+                httpCode: HttpCode.UNAUTHORIZED
+            });
+            errorHandler.handleError(appError, res);
+            return;
+        }
+
+        if (!req.file) {
+            const appError = new AppError({
+                name: 'No image attached',
+                description: 'There was no image attached in request',
+                httpCode: HttpCode.BAD_REQUEST
+            });
+            errorHandler.handleError(appError, res);
+            return;
+        }
+        let imageUpload;
+
+        if (user.cloudinaryID) {
+            await deleteFromCloudinary(user.cloudinaryID);
+            const buffer = req.file.buffer.toString('base64');
+            imageUpload = await uploadToCloudinary(buffer);
+        } else {
+            const buffer = req.file.buffer.toString('base64');
+            imageUpload = await uploadToCloudinary(buffer);
+        }
+        let updateData: Record<string, unknown> = {};
+        if (imageUpload) {
+            updateData['profilePicture'] = imageUpload.secure_url;
+            updateData['cloudinaryID'] = imageUpload.public_id;
+            console.log(updateData);
+        }
+        console.log(updateData);
+        const updatedUser = await User.findByIdAndUpdate(_id, updateData, {
+            new: true
+        });
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        if (error instanceof Error) {
+            logger.error(error);
+            errorHandler.handleError(error, res);
+        } else {
+            const unknownError = new Error(
+                'Unknown error occuring at updateProfileImage controller'
             );
             logger.error(unknownError);
             errorHandler.handleError(unknownError, res);

@@ -6,7 +6,11 @@ const userSchema = new Schema(
     {
         googleID: {
             required: false,
-            type: String,
+            type: String
+        },
+        cloudinaryID: {
+            required: false,
+            type: String
         },
         firstName: {
             required: true,
@@ -25,6 +29,10 @@ const userSchema = new Schema(
             type: String
         },
         profilePicture: {
+            required: false,
+            type: String
+        },
+        phoneNumber: {
             required: false,
             type: String
         }

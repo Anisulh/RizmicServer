@@ -3,6 +3,7 @@ import app from '../../server';
 import User from './model';
 import bcrypt from 'bcrypt';
 import { redis } from '../../library/limiterInstances';
+import { generateToken } from './services/jwt';
 
 const existingUser = {
     firstName: 'Thomas',
@@ -30,6 +31,17 @@ const nonExistingUserLogin = {
     password: '123456aA'
 };
 
+const updateProfileData = {
+    firstName: 'Tim',
+    lastName: 'Baldy',
+    phoneNumber: '7183998822'
+};
+
+const partialUpdateProfileData = {
+    firstName: 'Roger'
+};
+
+let token: string | undefined;
 beforeEach(async () => {
     await redis.flushall('ASYNC');
     await User.deleteMany();
@@ -37,7 +49,9 @@ beforeEach(async () => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(existingUser.password, salt);
     newUser.password = hashedPassword;
-    await User.create(newUser);
+    const createdUser = await User.create(newUser);
+    const userID = createdUser._id;
+    token = generateToken(userID);
 });
 
 describe('User registration', () => {
@@ -99,5 +113,112 @@ describe('User login', () => {
             .post('/user/login')
             .send(invalidUserLogin);
         expect(secondResponse.statusCode).toBe(429);
+    });
+});
+
+describe('Update user profile', () => {
+    it('Should update the profile and return the updated instance', async () => {
+        const { firstName, lastName, phoneNumber } = updateProfileData;
+        const response = await request(app)
+            .post('/user/updateProfile')
+            .set('Authorization', `Bearer ${token}`)
+            .send(updateProfileData)
+            .expect(200);
+        expect(response.body).toEqual(
+            expect.objectContaining({
+                __v: 0,
+                _id: expect.any(String),
+                firstName,
+                lastName,
+                phoneNumber,
+                email: expect.any(String),
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String)
+            })
+        );
+    });
+
+    it('Should update the profile with partial data and return the updated instance', async () => {
+        const { firstName } = partialUpdateProfileData;
+        const response = await request(app)
+            .post('/user/updateProfile')
+            .set('Authorization', `Bearer ${token}`)
+            .send(partialUpdateProfileData)
+            .expect(200);
+        expect(response.body).toEqual(
+            expect.objectContaining({
+                __v: 0,
+                _id: expect.any(String),
+                firstName,
+                lastName: expect.any(String),
+                email: expect.any(String),
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String)
+            })
+        );
+    });
+});
+
+const validPasswordData = {
+    currentPassword: '1234567aA',
+    newPassword: '31231aAA',
+    confirmPassword: '31231aAA'
+};
+const invalidCurrentPasswordData = {
+    currentPassword: '1231567aA',
+    newPassword: '31231aAA',
+    confirmPassword: '31231aAA'
+};
+const invalidConfirmPasswordData = {
+    currentPassword: '1234567aA',
+    newPassword: '31231aAA',
+    confirmPassword: '3123aAA'
+};
+
+describe('Changing users password', () => {
+    it('Should change users password', async () => {
+        return await request(app)
+            .post('/user/changePassword')
+            .set('Authorization', `Bearer ${token}`)
+            .send(validPasswordData)
+            .expect(200);
+    });
+    it('Should not change password if current password doesnt match', async () => {
+        return await request(app)
+            .post('/user/changePassword')
+            .set('Authorization', `Bearer ${token}`)
+            .send(invalidCurrentPasswordData)
+            .expect(400);
+    });
+    it('Should not change password if the new password does not match confirm password', async () => {
+        return await request(app)
+            .post('/user/changePassword')
+            .set('Authorization', `Bearer ${token}`)
+            .send(invalidConfirmPasswordData)
+            .expect(400);
+    });
+});
+
+describe('Update profile image', () => {
+    it('Should return 200 and user instance along with image link', async () => {
+        const response = await request(app)
+            .post('/user/updateProfileImage')
+            .set('Authorization', `Bearer ${token}`)
+            .set('Content-Type', 'multipart/form-data')
+            .attach('image', `${__dirname}/assets/Useravatar.png`)
+            .expect(200);
+        expect(response.body).toEqual(
+            expect.objectContaining({
+                __v: 0,
+                _id: expect.any(String),
+                cloudinaryID: expect.any(String),
+                firstName: expect.any(String),
+                lastName: expect.any(String),
+                profilePicture: expect.any(String),
+                email: expect.any(String),
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String)
+            })
+        );
     });
 });

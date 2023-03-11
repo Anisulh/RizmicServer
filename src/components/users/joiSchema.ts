@@ -12,7 +12,8 @@ export const registerSchema = Joi.object({
             minDomainSegments: 2,
             tlds: { allow: ['com', 'net'] }
         })
-        .required()
+        .required(),
+    phoneNumber: Joi.string()
 });
 
 export const loginSchema = Joi.object({
@@ -24,3 +25,16 @@ export const loginSchema = Joi.object({
         .required(),
     password: Joi.string().pattern(new RegExp(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{5,}$/)).required()
 });
+
+
+export const updateProfileSchema = Joi.object({
+    firstName: Joi.string().alphanum().min(3).max(30),
+    lastName: Joi.string().alphanum().min(3).max(30),
+    phoneNumber: Joi.string()
+});
+
+export const changePasswordSchema = Joi.object({
+    currentPassword: Joi.string().pattern(new RegExp(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{5,}$/)).required(),
+    newPassword: Joi.string().pattern(new RegExp(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{5,}$/)).required(),
+    confirmPassword: Joi.ref('newPassword'),
+})

@@ -19,7 +19,6 @@ clothesRouter
         authorization,
         upload.single('image'),
         reqValidation(createClothesSchema),
-
         createClothes
     )
     .get('/:clothesId', authorization, getSpecificClothes)
