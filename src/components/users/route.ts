@@ -4,10 +4,12 @@ import { reqValidation } from '../../middleware/reqValidation';
 import {
     changePassword,
     getUser,
+    updateProfile,
+    updateProfileImage,
     loginUser,
     registerUser,
-    updateProfile,
-    updateProfileImage
+    forgotUserPassword,
+    resetPasswordController
 } from './controller';
 import {
     changePasswordSchema,
@@ -21,6 +23,8 @@ const userRouter = express.Router();
 
 userRouter.post('/register', reqValidation(registerSchema), registerUser);
 userRouter.post('/login', reqValidation(loginSchema), loginUser);
+userRouter.post('/forgotpassword', forgotUserPassword);
+userRouter.post('/passwordreset', resetPasswordController);
 userRouter.post(
     '/updateProfile',
     authorization,
