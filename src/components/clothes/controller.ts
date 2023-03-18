@@ -33,7 +33,7 @@ export const createClothes = async (req: Request, res: Response) => {
             res.status(201).json(newClothes);
         } else {
             const criticalError = new Error(
-                'Failes to save new clothes instance'
+                'Failed to save new clothes instance'
             );
             errorHandler.handleError(criticalError, res);
         }
@@ -103,7 +103,7 @@ export const updateClothes = async (req: Request, res: Response) => {
             const appError = new AppError({
                 name: 'Unauthorized update',
                 description:
-                    'Wser token does not match the associated user of the clothes',
+                    'User token does not match the associated user of the clothes',
                 httpCode: HttpCode.UNAUTHORIZED
             });
             errorHandler.handleError(appError, res);
