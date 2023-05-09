@@ -8,6 +8,8 @@ import helmet from 'helmet';
 import './process';
 import rateLimiterMiddleware from './middleware/rateLimiter';
 import clothesRouter from './components/clothes/route';
+import generationRouter from './components/fitGeneration/route';
+import outfitRouter from './components/outfits/route';
 
 const app: Application = express();
 
@@ -31,6 +33,8 @@ app.use(express.json());
 //routing
 app.use('/user', userRouter);
 app.use('/clothes', clothesRouter);
+app.use('/generation', generationRouter);
+app.use('/outfits', outfitRouter);
 
 //router errorhandling
 app.use(routeError);
