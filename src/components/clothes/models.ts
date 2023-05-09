@@ -61,3 +61,17 @@ const clothesSchema = new Schema(
 
 const Clothes = mongoose.model('Clothes', clothesSchema);
 export default Clothes;
+
+
+export interface IClothingData {
+    _id?: string;
+    category: string;
+    variant: string;
+    color: string;
+    layerable: boolean;
+    bodyLocation: string[];
+    image?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    __v?: 0;
+  }
