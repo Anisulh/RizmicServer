@@ -29,6 +29,13 @@ const existingUpperBodyClothes = [
         variant: 'crew-neck',
         color: 'rgb(155, 102, 112)',
         layerable: true
+    },
+    {
+        bodyLocation: ['upperBody'],
+        category: 'tshirt',
+        variant: 'jersey',
+        color: 'rgb(90, 146, 237)',
+        layerable: true
     }
 ];
 
@@ -45,6 +52,13 @@ const existingLowerBodyClothes = [
         category: 'pants',
         variant: 'jeans',
         color: 'rgb(155, 92, 102)',
+        layerable: true
+    },
+    {
+        bodyLocation: ['lowerBody'],
+        category: 'pants',
+        variant: 'item',
+        color: 'rgb(34, 108, 227)',
         layerable: true
     }
 ];
@@ -67,7 +81,7 @@ beforeAll(async () => {
         userID = userInDB._id;
         token = generateToken(userInDB._id);
     }
-    existingUpperBodyClothes.forEach(async (item) => {
+    existingUpperBodyClothes.map(async (item) => {
         try {
             const clothesData = { ...item, userID };
             await Clothes.create(clothesData);
@@ -75,7 +89,7 @@ beforeAll(async () => {
             console.log(error);
         }
     });
-    existingLowerBodyClothes.forEach(async (item) => {
+    existingLowerBodyClothes.map(async (item) => {
         try {
             const clothesData = { ...item, userID };
             await Clothes.create(clothesData);
@@ -90,9 +104,8 @@ describe('Generate fit', () => {
         const response = await request(app)
             .post('/generation/')
             .set('Authorization', `Bearer ${token}`)
-            .send({style:'monochrome'})
+            .send({ style: 'monochrome' })
             .expect(200);
         console.log(response.body);
-      
     });
 });
