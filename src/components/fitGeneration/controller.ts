@@ -7,20 +7,19 @@ export const generateFit = async (req: Request, res: Response) => {
     try {
         const { _id } = req.user;
         const { style } = req.body;
-        console.log({_id, style})
         const tops = await Clothes.find({
-            bodyLocation: 'upperbody',
+            bodyLocation: 'upperBody',
             userID: _id
         });
         const bottoms = await Clothes.find({
-            bodyLocation: 'lowerbody',
+            bodyLocation: 'lowerBody',
             userID: _id
         });
 
         const fits = algorithm(tops, bottoms, style);
         res.status(200).json({ fits });
     } catch (e) {
-        const error = new Error(`Error occured during fit generation: ${e}`)
-        errorHandler.handleError(error, res)
+        const error = new Error(`Error occured during fit generation: ${e}`);
+        errorHandler.handleError(error, res);
     }
 };
