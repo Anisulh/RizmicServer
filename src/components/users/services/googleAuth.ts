@@ -56,9 +56,15 @@ export const googleRegister = async (googleToken: string, res: Response) => {
             profilePicture: picture
         });
         if (createdUser) {
+            
             const createdUserData: IUser = { ...createdUser._doc };
-            createdUserData['token'] = generateToken(createdUserData._id);
-            res.status(201).json(createdUserData);
+            const userData = {
+                firstName: createdUserData.firstName,
+                lastName: createdUserData.lastName,
+                profilePicture: createdUserData.profilePicture,
+                token: generateToken(createdUserData._id)
+            }
+            res.status(201).json(userData);
         } else {
             const error = new Error('unable to save user instance');
             errorHandler.handleError(error, res);
@@ -92,10 +98,13 @@ export const googleLogin = async (googleToken: string, res: Response) => {
             delete user.password;
             res.status(200).json(user);
         } else if (googleUserDoc && googleUserDoc.googleID === sub) {
-            const user: IUser = googleUserDoc;
-            user['token'] = generateToken(googleUserDoc._id);
-            delete user.password;
-            res.status(200).json(user);
+            const userData = {
+                firstName: googleUserDoc.firstName,
+                lastName: googleUserDoc.lastName,
+                profilePicture: googleUserDoc.profilePicture,
+                token: generateToken(googleUserDoc._id)
+            }
+            res.status(200).json(userData);
         } else {
             const appError = new AppError({
                 name: 'Google Login User Error',

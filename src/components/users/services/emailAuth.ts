@@ -38,9 +38,14 @@ export const emailRegister = async (userData: IUserRegister, res: Response) => {
     const createdUser: AnyObject = await User.create(userData);
     if (createdUser) {
         const createdUserData: IUser = { ...createdUser._doc };
-        createdUserData['token'] = generateToken(createdUserData._id);
-        delete createdUserData.password;
-        res.status(201).json(createdUserData);
+        const userData = {
+            firstName: createdUserData.firstName,
+            lastName: createdUserData.lastName,
+            profilePicture: createdUserData.profilePicture,
+            token: generateToken(createdUserData._id)
+        }
+        
+        res.status(201).json(userData);
     } else {
         const error = new Error('Unable to save new user instance');
         errorHandler.handleError(error, res);
@@ -94,8 +99,12 @@ export const emailLogin = async (
         // Reset on successful authorisation
         await limiterConsecutiveFailsByEmailAndIP.delete(emailIPkey);
     }
-    const user: IUser = basicUserDoc;
-    user['token'] = generateToken(basicUserDoc._id);
-    delete user.password;
-    res.status(200).json(user);
+    const userData = {
+        firstName: basicUserDoc.firstName,
+        lastName: basicUserDoc.lastName,
+        profilePicture: basicUserDoc.profilePicture,
+        token: generateToken(basicUserDoc._id)
+    }
+    
+    res.status(200).json(userData);
 };

@@ -3,7 +3,6 @@ import app from '../../server';
 import User, { ResetToken } from './model';
 import bcrypt from 'bcrypt';
 import { redis } from '../../library/limiterInstances';
-import { Types } from 'mongoose';
 import { generateToken } from './services/jwt';
 
 const existingUser = {
@@ -64,14 +63,9 @@ describe('User registration', () => {
             .expect(201);
 
         expect(response.body).toMatchObject({
-            __v: 0,
-            _id: expect.any(String),
             firstName: expect.any(String),
             lastName: expect.any(String),
-            email: expect.any(String),
             token: expect.any(String),
-            createdAt: expect.any(String),
-            updatedAt: expect.any(String)
         });
     });
     it('Should return 400 if user exists', async () => {
@@ -88,14 +82,9 @@ describe('User login', () => {
             .send(existingUserLogin)
             .expect(200);
         expect(response.body).toMatchObject({
-            __v: 0,
-            _id: expect.any(String),
             firstName: expect.any(String),
             lastName: expect.any(String),
-            email: expect.any(String),
             token: expect.any(String),
-            createdAt: expect.any(String),
-            updatedAt: expect.any(String)
         });
     });
     it('Should return 400 if user does not exist in DB', async () => {
@@ -130,7 +119,6 @@ describe('Forgot password', () => {
             .post('/user/forgotpassword')
             .send({ email: existingUser.email })
             .expect(200);
-        console.log(response.body);
     });
 });
 
@@ -144,14 +132,8 @@ describe('Update user profile', () => {
             .expect(200);
         expect(response.body).toEqual(
             expect.objectContaining({
-                __v: 0,
-                _id: expect.any(String),
                 firstName,
                 lastName,
-                phoneNumber,
-                email: expect.any(String),
-                createdAt: expect.any(String),
-                updatedAt: expect.any(String)
             })
         );
     });
@@ -165,13 +147,8 @@ describe('Update user profile', () => {
             .expect(200);
         expect(response.body).toEqual(
             expect.objectContaining({
-                __v: 0,
-                _id: expect.any(String),
                 firstName,
                 lastName: expect.any(String),
-                email: expect.any(String),
-                createdAt: expect.any(String),
-                updatedAt: expect.any(String)
             })
         );
     });
@@ -227,15 +204,9 @@ describe('Update profile image', () => {
             .expect(200);
         expect(response.body).toEqual(
             expect.objectContaining({
-                __v: 0,
-                _id: expect.any(String),
-                cloudinaryID: expect.any(String),
                 firstName: expect.any(String),
                 lastName: expect.any(String),
                 profilePicture: expect.any(String),
-                email: expect.any(String),
-                createdAt: expect.any(String),
-                updatedAt: expect.any(String)
             })
         );
     });

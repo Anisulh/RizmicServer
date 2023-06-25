@@ -11,7 +11,6 @@ import { googleLogin, googleRegister } from './services/googleAuth';
 import { emailLogin, emailRegister } from './services/emailAuth';
 import * as crypto from 'crypto';
 import bcrypt from 'bcrypt';
-import { any } from 'joi';
 import sendEmail from './sendEmails';
 import resetPassword from './ResetPassword/resetPassword';
 import { forgotPasswordTemplate } from './ResetPassword/htmlTemplates';
@@ -194,7 +193,12 @@ export const updateProfile = async (req: Request, res: Response) => {
             { firstName, lastName, phoneNumber },
             { new: true }
         );
-        res.status(200).json(updatedUser);
+        const userData = {
+            firstName: updatedUser?.firstName,
+            lastName: updatedUser?.lastName,
+            profilePicture: updatedUser?.profilePicture
+        };
+        res.status(200).json(userData);
     } catch (error) {
         if (error instanceof Error) {
             logger.error(error);
@@ -214,7 +218,12 @@ export const getUser = async (req: Request, res: Response) => {
         const { _id } = req.user;
         const userInstince = await User.findById(_id).select('-password');
         if (userInstince) {
-            return res.status(200).json(userInstince);
+            const userData = {
+                firstName: userInstince?.firstName,
+                lastName: userInstince?.lastName,
+                profilePicture: userInstince?.profilePicture
+            };
+            return res.status(200).json(userData);
         } else {
             const appError = new AppError({
                 description: 'No user found',
@@ -305,7 +314,7 @@ export const updateProfileImage = async (req: Request, res: Response) => {
             const appError = new AppError({
                 name: 'Unauthorized update',
                 description:
-                    'User token does not match the associated user of the clothes',
+                    'User does not match the associated user of the clothes',
                 httpCode: HttpCode.UNAUTHORIZED
             });
             errorHandler.handleError(appError, res);
@@ -335,13 +344,16 @@ export const updateProfileImage = async (req: Request, res: Response) => {
         if (imageUpload) {
             updateData['profilePicture'] = imageUpload.secure_url;
             updateData['cloudinaryID'] = imageUpload.public_id;
-            console.log(updateData);
         }
-        console.log(updateData);
         const updatedUser = await User.findByIdAndUpdate(_id, updateData, {
             new: true
         });
-        res.status(200).json(updatedUser);
+        const userData = {
+            firstName: updatedUser?.firstName,
+            lastName: updatedUser?.lastName,
+            profilePicture: updatedUser?.profilePicture
+        };
+        res.status(200).json(userData);
     } catch (error) {
         if (error instanceof Error) {
             logger.error(error);
