@@ -103,7 +103,7 @@ export const updateClothes = async (req: Request, res: Response) => {
             const appError = new AppError({
                 name: 'Unauthorized update',
                 description:
-                    'User token does not match the associated user of the clothes',
+                    'User does not match the associated user of the clothes',
                 httpCode: HttpCode.UNAUTHORIZED
             });
             errorHandler.handleError(appError, res);
@@ -134,7 +134,7 @@ export const deleteClothes = async (req: Request, res: Response) => {
             const appError = new AppError({
                 name: 'Unauthorized update',
                 description:
-                    'User token does not match the associated user of the clothes',
+                    'User does not match the associated user of the clothes',
                 httpCode: HttpCode.UNAUTHORIZED
             });
             errorHandler.handleError(appError, res);
