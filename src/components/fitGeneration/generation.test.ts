@@ -106,6 +106,5 @@ describe('Generate fit', () => {
             .set('Authorization', `Bearer ${token}`)
             .send({ style: 'monochrome' })
             .expect(200);
-        console.log(response.body);
     });
 });
