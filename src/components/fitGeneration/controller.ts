@@ -6,7 +6,7 @@ import { errorHandler } from '../../library/errorHandler';
 export const generateFit = async (req: Request, res: Response) => {
     try {
         const { _id } = req.user;
-        const { style } = req.body;
+        const { style, vibe } = req.body;
         const tops = await Clothes.find({
             bodyLocation: 'upperBody',
             userID: _id
@@ -16,7 +16,7 @@ export const generateFit = async (req: Request, res: Response) => {
             userID: _id
         });
 
-        const fits = algorithm(tops, bottoms, style);
+        const fits = algorithm(tops, bottoms, style, vibe);
         res.status(200).json({ fits });
     } catch (e) {
         const error = new Error(`Error occured during fit generation: ${e}`);
