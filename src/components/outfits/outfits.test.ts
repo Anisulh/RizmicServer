@@ -10,7 +10,8 @@ import Outifts from './models';
 let token: string | undefined;
 let userID: Types.ObjectId;
 let outfitID: Types.ObjectId;
-const clothesArray: Types.ObjectId[] = [];
+let nonExistingOutfitID: Types.ObjectId = new Types.ObjectId();
+let clothesArray: any = [];
 const existingUser = {
     firstName: 'Thomas',
     lastName: 'Hatek',
@@ -71,26 +72,25 @@ beforeAll(async () => {
         userID = userInDB._id;
         token = generateToken(userInDB._id);
     }
-    existingUpperBodyClothes.forEach(async (item) => {
+    const upperBodyExisting = existingUpperBodyClothes.map(async (item) => {
     try {
       const clothesData = { ...item, userID };
       const createdClothes = await Clothes.create(clothesData);
-      clothesArray.push(createdClothes._id);
+      return createdClothes._id
     } catch (error) {
       console.log(error);
     }
   });
-   existingLowerBodyClothes.forEach(async (item) => {
+   const lowerBodyExisting = existingLowerBodyClothes.map(async (item) => {
     try {
       const clothesData = { ...item, userID };
       const createdClothes = await Clothes.create(clothesData);
-      clothesArray.push(createdClothes._id);
-      console.log(clothesArray)
+      return createdClothes._id
     } catch (error) {
       console.log(error);
     }
   });
-  console.log(clothesArray)
+  clothesArray = await Promise.all([...upperBodyExisting, ...lowerBodyExisting]);
 });
 
 describe('create an outfit', () => {
@@ -98,40 +98,53 @@ describe('create an outfit', () => {
         const response = await request(app)
             .post('/outfits/')
             .set('Authorization', `Bearer ${token}`)
-            .send([clothesArray])
+            .send({clothes: clothesArray})
             .expect(201);
-        console.log(response.body);
+
+        outfitID = response.body.createdOutfit._id
     });
 });
-// describe('get all outfits', () => {
-//     it('should return 200 and all outfits', async () => {
-//         await request(app)
-//             .get('/outfits/')
-//             .set('Authorization', `Bearer ${token}`)
-//             .expect(200);
-//     });
-// });
-// describe('get all favorited outfits', () => {
-//     it('should return 200 and all outfits', async () => {
-//         await request(app)
-//             .get('/outfits/favorite')
-//             .set('Authorization', `Bearer ${token}`)
-//             .expect(200);
-//     });
-// });
-// describe('favoriting an outfit', () => {
-//     it('should return 200 and favorite the selected outfit', async () => {
-//         await request(app)
-//             .patch(`/outfits/favorite/${outfitID}`)
-//             .set('Authorization', `Bearer ${token}`)
-//             .expect(200);
-//     });
-// });
-// describe('unfavoriting an outfit', () => {
-//     it('should return 200 and favorite the selected outfit', async () => {
-//         await request(app)
-//             .patch(`/outfits/unfavorite/${outfitID}`)
-//             .set('Authorization', `Bearer ${token}`)
-//             .expect(200);
-//     });
-// });
+describe('get all outfits', () => {
+    it('should return 200 and all outfits', async () => {
+        await request(app)
+            .get('/outfits/')
+            .set('Authorization', `Bearer ${token}`)
+            .expect(200);
+    });
+});
+describe('get all favorited outfits', () => {
+    it('should return 200 and all outfits', async () => {
+        await request(app)
+            .get('/outfits/favorite')
+            .set('Authorization', `Bearer ${token}`)
+            .expect(200);
+    });
+});
+describe('favoriting an outfit', () => {
+    it('should not return 200 outfit is nonexisting', async () => {
+        await request(app)
+            .patch(`/outfits/favorite/${nonExistingOutfitID}`)
+            .set('Authorization', `Bearer ${token}`)
+            .expect(400);
+    });
+    it('should return 200 and favorite the selected outfit', async () => {
+        await request(app)
+            .patch(`/outfits/favorite/${outfitID}`)
+            .set('Authorization', `Bearer ${token}`)
+            .expect(200);
+    });
+});
+describe('unfavoriting an outfit', () => {
+    it('should not return 200 outfit is nonexisting', async () => {
+        await request(app)
+            .patch(`/outfits/unfavorite/${nonExistingOutfitID}`)
+            .set('Authorization', `Bearer ${token}`)
+            .expect(400);
+    });
+    it('should return 200 and favorite the selected outfit', async () => {
+        await request(app)
+            .patch(`/outfits/unfavorite/${outfitID}`)
+            .set('Authorization', `Bearer ${token}`)
+            .expect(200);
+    });
+});
