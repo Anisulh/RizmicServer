@@ -77,17 +77,17 @@ beforeAll(async () => {
 describe('Authorization Middleware', () => {
     it('Should return 200 if valid token', async () => {
         return await request(app)
-            .get('/clothes/')
+            .get('/api/clothes/')
             .set('Authorization', `Bearer ${token}`)
             .expect(200);
     });
     it('Should return 400 if no token provided', async () => {
-        return await request(app).get('/clothes/').expect(400);
+        return await request(app).get('/api/clothes/').expect(400);
     });
     it('Should return 400 if invalid token provided', async () => {
         const invalidToken = 'invalid';
         return await request(app)
-            .get('/clothes/')
+            .get('/api/clothes/')
             .set('Authorization', `Bearer ${invalidToken}`)
             .expect(400);
     });
@@ -96,7 +96,7 @@ describe('Authorization Middleware', () => {
 describe('Get all clothes', () => {
     it('Should return 200 and all clothes instances', async () => {
         const response = await request(app)
-            .get('/clothes/')
+            .get('/api/clothes/')
             .set('Authorization', `Bearer ${token}`)
             .expect(200);
 
@@ -122,7 +122,7 @@ describe('Get all clothes', () => {
 describe('Create new clothes', () => {
     it('Should return 201 and clothes instance along with image link', async () => {
         const response = await request(app)
-            .post('/clothes/')
+            .post('/api/clothes/')
             .set('Authorization', `Bearer ${token}`)
             .set('Content-Type', 'multipart/form-data')
             .field(nonExistingClothesWithImage)
@@ -149,7 +149,7 @@ describe('Create new clothes', () => {
     });
     it('Should return 201 and clothes instance without image link', async () => {
         const response = await request(app)
-            .post('/clothes/')
+            .post('/api/clothes/')
             .set('Authorization', `Bearer ${token}`)
             .send(nonExistingClothes)
             .expect(201);
@@ -170,7 +170,7 @@ describe('Create new clothes', () => {
     });
     it('Should return 400 when a required field is missing', async () => {
         return await request(app)
-            .post('/clothes/')
+            .post('/api/clothes/')
             .set('Authorization', `Bearer ${token}`)
             .send(invalidClothes)
             .expect(400);
@@ -180,7 +180,7 @@ describe('Create new clothes', () => {
 describe('Get specific clothes', () => {
     it('Should return 200 and clothes instance', async () => {
         const response = await request(app)
-            .get(`/clothes/${createdClothesId}`)
+            .get(`/api/clothes/${createdClothesId}`)
             .set('Authorization', `Bearer ${token}`)
             .expect(200);
 
@@ -202,7 +202,7 @@ describe('Get specific clothes', () => {
 describe('Updating Clothes', () => {
     it('Should return 200 and updated clothes instance that didnt have image with image', async () => {
         const response = await request(app)
-            .put(`/clothes/${createdClothesId}`)
+            .put(`/api/clothes/${createdClothesId}`)
             .set('Authorization', `Bearer ${token}`)
             .field({ color: 'red', category: 'sweater' })
             .attach('image', `${__dirname}/image.jpg`)
@@ -226,7 +226,7 @@ describe('Updating Clothes', () => {
     });
     it('Should return 200 and updated clothes instance, replacing old image with new image', async () => {
         const response = await request(app)
-            .put(`/clothes/${createdClothesIdWithImage}`)
+            .put(`/api/clothes/${createdClothesIdWithImage}`)
             .set('Authorization', `Bearer ${token}`)
             .field({ color: 'red', category: 'sweater' })
             .attach('image', `${__dirname}/image.jpg`)
@@ -253,7 +253,7 @@ describe('Updating Clothes', () => {
 describe('Deleteing Clothes', () => {
     it('Should return 200 and id of deleted clothes', async () => {
         const response = await request(app)
-            .delete(`/clothes/${createdClothesId}`)
+            .delete(`/api/clothes/${createdClothesId}`)
             .set('Authorization', `Bearer ${token}`)
             .expect(200);
 

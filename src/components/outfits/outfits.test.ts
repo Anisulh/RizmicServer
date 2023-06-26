@@ -96,7 +96,7 @@ beforeAll(async () => {
 describe('create an outfit', () => {
     it('Should return 200 and all generated instances', async () => {
         const response = await request(app)
-            .post('/outfits/')
+            .post('/api/outfits/')
             .set('Authorization', `Bearer ${token}`)
             .send({clothes: clothesArray})
             .expect(201);
@@ -107,7 +107,7 @@ describe('create an outfit', () => {
 describe('get all outfits', () => {
     it('should return 200 and all outfits', async () => {
         await request(app)
-            .get('/outfits/')
+            .get('/api/outfits/')
             .set('Authorization', `Bearer ${token}`)
             .expect(200);
     });
@@ -115,7 +115,7 @@ describe('get all outfits', () => {
 describe('get all favorited outfits', () => {
     it('should return 200 and all outfits', async () => {
         await request(app)
-            .get('/outfits/favorite')
+            .get('/api/outfits/favorite')
             .set('Authorization', `Bearer ${token}`)
             .expect(200);
     });
@@ -123,13 +123,13 @@ describe('get all favorited outfits', () => {
 describe('favoriting an outfit', () => {
     it('should not return 200 outfit is nonexisting', async () => {
         await request(app)
-            .patch(`/outfits/favorite/${nonExistingOutfitID}`)
+            .patch(`/api/outfits/favorite/${nonExistingOutfitID}`)
             .set('Authorization', `Bearer ${token}`)
             .expect(400);
     });
     it('should return 200 and favorite the selected outfit', async () => {
         await request(app)
-            .patch(`/outfits/favorite/${outfitID}`)
+            .patch(`/api/outfits/favorite/${outfitID}`)
             .set('Authorization', `Bearer ${token}`)
             .expect(200);
     });
@@ -137,13 +137,13 @@ describe('favoriting an outfit', () => {
 describe('unfavoriting an outfit', () => {
     it('should not return 200 outfit is nonexisting', async () => {
         await request(app)
-            .patch(`/outfits/unfavorite/${nonExistingOutfitID}`)
+            .patch(`/api/outfits/unfavorite/${nonExistingOutfitID}`)
             .set('Authorization', `Bearer ${token}`)
             .expect(400);
     });
     it('should return 200 and favorite the selected outfit', async () => {
         await request(app)
-            .patch(`/outfits/unfavorite/${outfitID}`)
+            .patch(`/api/outfits/unfavorite/${outfitID}`)
             .set('Authorization', `Bearer ${token}`)
             .expect(200);
     });

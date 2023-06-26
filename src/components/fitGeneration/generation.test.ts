@@ -102,7 +102,7 @@ beforeAll(async () => {
 describe('Generate fit', () => {
     it('Should return 200 and all generated instances', async () => {
         const response = await request(app)
-            .post('/generation/')
+            .post('/api/generation/')
             .set('Authorization', `Bearer ${token}`)
             .send({ style: 'monochrome' })
             .expect(200);
