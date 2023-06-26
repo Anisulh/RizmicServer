@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Outifts from './models';
+import Outfits from './models';
 import { AppError, HttpCode, errorHandler } from '../../library/errorHandler';
 import {
     deleteFromCloudinary,
@@ -9,7 +9,7 @@ import {
 export const listOutfits = async (req: Request, res: Response) => {
     try {
         const { _id } = req.user;
-        const outfits = await Outifts.find({ userID: _id }).populate('clothes');
+        const outfits = await Outfits.find({ userID: _id }).populate('clothes');
         res.status(200).json({ outfits });
     } catch (e) {
         const error = new Error(`Error occured during listing outfits: ${e}`);
@@ -35,7 +35,7 @@ export const createOutfit = async (req: Request, res: Response) => {
             outfitData['cloudinaryID'] = imageUpload.public_id;
             outfitData['coverImg'] = imageUpload.secure_url;
         }
-        const newOutfit = await Outifts.create(outfitData);
+        const newOutfit = await Outfits.create(outfitData);
         if (newOutfit) {
             return res.status(201).json(newOutfit);
         } else {
@@ -52,7 +52,7 @@ export const createOutfit = async (req: Request, res: Response) => {
 export const listFavoriteOutfits = async (req: Request, res: Response) => {
     try {
         const { _id } = req.user;
-        const favoriteOutfits = await Outifts.find({
+        const favoriteOutfits = await Outfits.find({
             userID: _id,
             favorited: true
         });
@@ -67,7 +67,7 @@ export const listFavoriteOutfits = async (req: Request, res: Response) => {
 export const favoriteOutfit = async (req: Request, res: Response) => {
     try {
         const outfitID = req.params.outfitID;
-        const outfit = await Outifts.findByIdAndUpdate(outfitID, {
+        const outfit = await Outfits.findByIdAndUpdate(outfitID, {
             favorited: true
         });
         if (outfit) {
@@ -88,7 +88,7 @@ export const favoriteOutfit = async (req: Request, res: Response) => {
 export const unfavoriteOutfit = async (req: Request, res: Response) => {
     try {
         const outfitID = req.params.outfitID;
-        const outfit = await Outifts.findByIdAndUpdate(outfitID, {
+        const outfit = await Outfits.findByIdAndUpdate(outfitID, {
             favorited: false
         });
         if (outfit) {
@@ -106,7 +106,52 @@ export const unfavoriteOutfit = async (req: Request, res: Response) => {
         errorHandler.handleError(error, res);
     }
 };
+export const updateOutfit = async (req: Request, res: Response) => {
+    try {
+        const { _id } = req.user;
+        const outfitID = req.params.outfitID;
+        const selectedOutfit = await Outfits.findById(outfitID);
+        let imageUpload;
+        if (
+            selectedOutfit &&
+            String(selectedOutfit?.userID) === String(_id)
+        ) {
+            if (selectedOutfit.cloudinaryID && req.file) {
+                await deleteFromCloudinary(selectedOutfit.cloudinaryID);
+                const buffer = req.file.buffer.toString('base64');
+                imageUpload = await uploadToCloudinary(buffer);
+            } else if (req.file) {
+                const buffer = req.file.buffer.toString('base64');
+                imageUpload = await uploadToCloudinary(buffer);
+            }
+            let updateData = { ...req.body };
+            if (imageUpload) {
+                updateData['coverImg'] = imageUpload.secure_url;
+                updateData['cloudinaryID'] = imageUpload.public_id;
+            }
+            const updatedOutfit = await Outfits.findByIdAndUpdate(
+                outfitID,
+                updateData,
+                { new: true }
+            );
 
+            res.status(200).json(updatedOutfit);
+        } else {
+            const appError = new AppError({
+                name: 'Unauthorized update',
+                description:
+                    'User does not match the associated user of the clothes',
+                httpCode: HttpCode.UNAUTHORIZED
+            });
+            errorHandler.handleError(appError, res);
+        }
+    } catch (error) {
+        const criticalError = new Error(
+            `Failed to update clothes due to error: ${error}`
+        );
+        errorHandler.handleError(criticalError, res);
+    }
+};
 export const deleteOutfit = async (req: Request, res: Response) => {
     try {
         const { _id } = req.user;
@@ -120,7 +165,7 @@ export const deleteOutfit = async (req: Request, res: Response) => {
             });
             errorHandler.handleError(appError, res);
         }
-        const selectedOutfit = await Outifts.findById(outfitID);
+        const selectedOutfit = await Outfits.findById(outfitID);
         console.log(outfitID) 
         if(!selectedOutfit){
             const appError = new AppError({

@@ -6,9 +6,10 @@ import {
     favoriteOutfit,
     listFavoriteOutfits,
     listOutfits,
-    unfavoriteOutfit
+    unfavoriteOutfit,
+    updateOutfit
 } from './controllers';
-import { createOutfitsSchema } from './joiSchema';
+import { createOutfitsSchema, updateOutfitsSchema } from './joiSchema';
 import { reqValidation } from '../../middleware/reqValidation';
 import upload from '../../config/multer.config';
 
@@ -22,6 +23,13 @@ outfitRouter
         upload.single('coverImg'),
         reqValidation(createOutfitsSchema),
         createOutfit
+    )
+    .put(
+        '/:outfitID',
+        authorization,
+        upload.single('coverImg'),
+        reqValidation(updateOutfitsSchema),
+        updateOutfit
     )
     .delete('/:outfitID', authorization, deleteOutfit)
     .get('/favorite', authorization, listFavoriteOutfits)

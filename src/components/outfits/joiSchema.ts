@@ -7,4 +7,11 @@ export const createOutfitsSchema = Joi.object({
     favorited: Joi.boolean()
 });
 
+export const updateOutfitsSchema = Joi.object({
+    name: Joi.string().min(3).max(50),
+    clothes: Joi.array(),
+    coverImg: Joi.any(),
+    favorited: Joi.boolean()
+});
+
 
