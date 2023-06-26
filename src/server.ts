@@ -31,10 +31,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 //routing
-app.use('/user', userRouter);
-app.use('/clothes', clothesRouter);
-app.use('/generation', generationRouter);
-app.use('/outfits', outfitRouter);
+app.use('/api/user', userRouter);
+app.use('/api/clothes', clothesRouter);
+app.use('/api/generation', generationRouter);
+app.use('/api/outfits', outfitRouter);
 
 //router errorhandling
 app.use(routeError);
