@@ -65,7 +65,7 @@ describe('User registration', () => {
         expect(response.body).toMatchObject({
             firstName: expect.any(String),
             lastName: expect.any(String),
-            token: expect.any(String),
+            token: expect.any(String)
         });
     });
     it('Should return 400 if user exists', async () => {
@@ -84,7 +84,7 @@ describe('User login', () => {
         expect(response.body).toMatchObject({
             firstName: expect.any(String),
             lastName: expect.any(String),
-            token: expect.any(String),
+            token: expect.any(String)
         });
     });
     it('Should return 400 if user does not exist in DB', async () => {
@@ -133,7 +133,7 @@ describe('Update user profile', () => {
         expect(response.body).toEqual(
             expect.objectContaining({
                 firstName,
-                lastName,
+                lastName
             })
         );
     });
@@ -148,7 +148,7 @@ describe('Update user profile', () => {
         expect(response.body).toEqual(
             expect.objectContaining({
                 firstName,
-                lastName: expect.any(String),
+                lastName: expect.any(String)
             })
         );
     });
@@ -200,13 +200,13 @@ describe('Update profile image', () => {
             .post('/api/user/updateProfileImage')
             .set('Authorization', `Bearer ${token}`)
             .set('Content-Type', 'multipart/form-data')
-            .attach('image', `${__dirname}/assets/api/Useravatar.png`)
+            .attach('image', `${__dirname}/assets/Useravatar.png`)
             .expect(200);
         expect(response.body).toEqual(
             expect.objectContaining({
                 firstName: expect.any(String),
                 lastName: expect.any(String),
-                profilePicture: expect.any(String),
+                profilePicture: expect.any(String)
             })
         );
     });
