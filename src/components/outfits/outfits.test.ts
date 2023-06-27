@@ -100,8 +100,7 @@ describe('create an outfit', () => {
             .set('Authorization', `Bearer ${token}`)
             .send({clothes: clothesArray})
             .expect(201);
-
-        outfitID = response.body.createdOutfit._id
+        outfitID = response.body._id
     });
 });
 describe('get all outfits', () => {
