@@ -29,7 +29,7 @@ export const authorization = async (
                 next();
             } else {
                 const appError = new AppError({name: 'Missing element in JWT', description: 'No _id field in JWT', httpCode:HttpCode.BAD_REQUEST})
-                errorHandler.handleError(appError, res)
+                return errorHandler.handleError(appError, res)
             }
         } catch (error) {
             if (
@@ -42,7 +42,7 @@ export const authorization = async (
                     description: error.message,
                     httpCode: HttpCode.BAD_REQUEST
                 });
-                errorHandler.handleError(appError, res);
+                return errorHandler.handleError(appError, res);
             }
         }
     } else {
@@ -51,6 +51,6 @@ export const authorization = async (
             description: 'No JWT found in header',
             httpCode: HttpCode.BAD_REQUEST
         });
-        errorHandler.handleError(appError, res);
+        return errorHandler.handleError(appError, res);
     }
 };
