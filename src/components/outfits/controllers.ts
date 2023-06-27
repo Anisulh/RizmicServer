@@ -19,18 +19,15 @@ export const listOutfits = async (req: Request, res: Response) => {
 export const createOutfit = async (req: Request, res: Response) => {
     try {
         const { _id } = req.user;
-        console.log(_id);
         let imageUpload;
         if (req.file) {
             const buffer = req.file.buffer.toString('base64');
             imageUpload = await uploadToCloudinary(buffer);
         }
-
         const outfitData = {
             userID: _id,
             ...req.body
         };
-        console.log(outfitData);
         if (imageUpload) {
             outfitData['cloudinaryID'] = imageUpload.public_id;
             outfitData['coverImg'] = imageUpload.secure_url;
@@ -166,7 +163,6 @@ export const deleteOutfit = async (req: Request, res: Response) => {
             errorHandler.handleError(appError, res);
         }
         const selectedOutfit = await Outfits.findById(outfitID);
-        console.log(outfitID) 
         if(!selectedOutfit){
             const appError = new AppError({
                 name: 'Document Not Found',
