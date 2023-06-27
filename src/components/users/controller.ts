@@ -35,8 +35,7 @@ export const registerUser = async (req: Request, res: Response) => {
                 description: 'Unable to register, user already exists',
                 httpCode: HttpCode.BAD_REQUEST
             });
-            errorHandler.handleError(appError, res);
-            return;
+            return errorHandler.handleError(appError, res);
         }
 
         if (googleToken) {
@@ -112,19 +111,19 @@ export const loginUser = async (req: Request, res: Response) => {
                     description: 'User does not exist'
                 });
                 logger.error(error);
-                errorHandler.handleError(error, res);
+                return errorHandler.handleError(error, res);
             }
         }
     } catch (error) {
         if (error instanceof Error) {
             logger.error(error);
-            errorHandler.handleError(error, res);
+            return errorHandler.handleError(error, res);
         } else {
             const unknownError = new Error(
                 'Unknown error occuring at loginUser controller'
             );
             logger.error(unknownError);
-            errorHandler.handleError(unknownError, res);
+            return errorHandler.handleError(unknownError, res);
         }
     }
 };
@@ -138,8 +137,7 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
                 httpCode: HttpCode.BAD_REQUEST,
                 description: 'Error finding user'
             });
-            errorHandler.handleError(error, res);
-            return;
+            return errorHandler.handleError(error, res);
         }
         let token = await ResetToken.findOne({ userID: existingUser?._id });
         if (token) {
@@ -164,13 +162,15 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
             emailTemplate
         );
         if (success) {
-            res.status(200).json({ message: 'Successful password reset sent' });
+            return res
+                .status(200)
+                .json({ message: 'Successful password reset sent' });
         } else {
-            logger.error('Unable to send mail');
+            return logger.error('Unable to send mail');
         }
     } catch (error) {
         const criticalError = new Error('Error sending email from controller');
-        errorHandler.handleError(criticalError, res);
+        return errorHandler.handleError(criticalError, res);
     }
 };
 
@@ -198,17 +198,17 @@ export const updateProfile = async (req: Request, res: Response) => {
             lastName: updatedUser?.lastName,
             profilePicture: updatedUser?.profilePicture
         };
-        res.status(200).json(userData);
+        return res.status(200).json(userData);
     } catch (error) {
         if (error instanceof Error) {
             logger.error(error);
-            errorHandler.handleError(error, res);
+            return errorHandler.handleError(error, res);
         } else {
             const unknownError = new Error(
                 'Unknown error occuring at updateProfile controller'
             );
             logger.error(unknownError);
-            errorHandler.handleError(unknownError, res);
+            return errorHandler.handleError(unknownError, res);
         }
     }
 };
@@ -229,19 +229,18 @@ export const getUser = async (req: Request, res: Response) => {
                 description: 'No user found',
                 httpCode: HttpCode.NOT_FOUND
             });
-            errorHandler.handleError(appError, res);
-            return;
+            return errorHandler.handleError(appError, res);
         }
     } catch (error) {
         if (error instanceof Error) {
             logger.error(error);
-            errorHandler.handleError(error, res);
+            return errorHandler.handleError(error, res);
         } else {
             const unknownError = new Error(
                 'Unknown error occuring at updateProfile controller'
             );
             logger.error(unknownError);
-            errorHandler.handleError(unknownError, res);
+            return errorHandler.handleError(unknownError, res);
         }
     }
 };
@@ -266,15 +265,13 @@ export const changePassword = async (req: Request, res: Response) => {
                     { password: hashedPassword },
                     { new: true }
                 );
-                res.status(200).json({});
-                return;
+                return res.status(200).json({});
             } else {
                 const appError = new AppError({
                     description: 'Password does not match current password',
                     httpCode: HttpCode.BAD_REQUEST
                 });
-                errorHandler.handleError(appError, res);
-                return;
+                return errorHandler.handleError(appError, res);
             }
         } else if (userInstince && userInstince.googleID) {
             await User.findByIdAndUpdate(
@@ -282,26 +279,24 @@ export const changePassword = async (req: Request, res: Response) => {
                 { password: newPassword },
                 { new: true }
             );
-            res.status(200);
-            return;
+            return res.status(200);
         } else {
             const appError = new AppError({
                 description: 'No user found',
                 httpCode: HttpCode.NOT_FOUND
             });
-            errorHandler.handleError(appError, res);
-            return;
+            return errorHandler.handleError(appError, res);
         }
     } catch (error) {
         if (error instanceof Error) {
             logger.error(error);
-            errorHandler.handleError(error, res);
+            return errorHandler.handleError(error, res);
         } else {
             const unknownError = new Error(
                 'Unknown error occuring at updateProfile controller'
             );
             logger.error(unknownError);
-            errorHandler.handleError(unknownError, res);
+            return errorHandler.handleError(unknownError, res);
         }
     }
 };
@@ -310,6 +305,7 @@ export const updateProfileImage = async (req: Request, res: Response) => {
     try {
         const { _id } = req.user;
         const user = await User.findById(_id);
+
         if (!user) {
             const appError = new AppError({
                 name: 'Unauthorized update',
@@ -317,21 +313,17 @@ export const updateProfileImage = async (req: Request, res: Response) => {
                     'User does not match the associated user of the clothes',
                 httpCode: HttpCode.UNAUTHORIZED
             });
-            errorHandler.handleError(appError, res);
-            return;
+            return errorHandler.handleError(appError, res);
         }
-
         if (!req.file) {
             const appError = new AppError({
                 name: 'No image attached',
                 description: 'There was no image attached in request',
                 httpCode: HttpCode.BAD_REQUEST
             });
-            errorHandler.handleError(appError, res);
-            return;
+            return errorHandler.handleError(appError, res);
         }
         let imageUpload;
-
         if (user.cloudinaryID) {
             await deleteFromCloudinary(user.cloudinaryID);
             const buffer = req.file.buffer.toString('base64');
@@ -353,17 +345,17 @@ export const updateProfileImage = async (req: Request, res: Response) => {
             lastName: updatedUser?.lastName,
             profilePicture: updatedUser?.profilePicture
         };
-        res.status(200).json(userData);
+       return res.status(200).json(userData);
     } catch (error) {
         if (error instanceof Error) {
             logger.error(error);
-            errorHandler.handleError(error, res);
+            return errorHandler.handleError(error, res);
         } else {
             const unknownError = new Error(
                 'Unknown error occuring at updateProfileImage controller'
             );
             logger.error(unknownError);
-            errorHandler.handleError(unknownError, res);
+            return errorHandler.handleError(unknownError, res);
         }
     }
 };
