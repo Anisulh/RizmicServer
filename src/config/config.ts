@@ -34,6 +34,10 @@ const config = {
         api_key: process.env.CLOUDINARY_API_KEY || '',
         api_secret: process.env.CLOUDINARY_API_SECRET || '',
         preset: process.env.CLOUDINARY_PRESET || ''
+    },
+    redis: {
+        host: process.env.REDIS_HOST || '',
+        port: process.env.REDIS_PORT || 6379,
     }
 };
 
