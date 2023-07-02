@@ -10,12 +10,17 @@ import rateLimiterMiddleware from './middleware/rateLimiter';
 import clothesRouter from './components/clothes/route';
 import generationRouter from './components/fitGeneration/route';
 import outfitRouter from './components/outfits/route';
+import Rollbar from 'rollbar';
 
 const app: Application = express();
-
+const rollbar = new Rollbar({
+    accessToken: 'fd33c0c14321416298b161b7983a0c9c',
+    captureUncaught: true,
+    captureUnhandledRejections: true,
+  })
 dbConnection();
 app.use(httpLogger);
-const allowedOrigins = ['http://localhost:5173'];
+const allowedOrigins = ['http://localhost:5173', 'http://rizmicfitsclient.s3-website-us-east-1.amazonaws.com'];
 
 const options: CorsOptions = {
     origin: allowedOrigins
@@ -38,5 +43,6 @@ app.use('/api/outfits', outfitRouter);
 
 //router errorhandling
 app.use(routeError);
+app.use(rollbar.errorHandler());
 
 export default app;
