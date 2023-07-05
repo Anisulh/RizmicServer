@@ -57,7 +57,7 @@ export const googleRegister = async (googleToken: string, res: Response) => {
             res.cookie('token', generateToken(createdUserData._id) as string, {
                 httpOnly: true,
                 sameSite: 'strict', // helps to prevent CSRF attacks
-                secure: false // ensures the cookie is only sent over HTTPS or not
+                secure: config.env === 'production' ? true : false // ensures the cookie is only sent over HTTPS or not
             });
             res.status(201).json(userData);
         } else {
@@ -93,7 +93,7 @@ export const googleLogin = async (googleToken: string, res: Response) => {
             res.cookie('token', generateToken(user._id) as string, {
                 httpOnly: true,
                 sameSite: 'strict', // helps to prevent CSRF attacks
-                secure: false // ensures the cookie is only sent over HTTPS or not
+                secure: config.env === 'production' ? true : false // ensures the cookie is only sent over HTTPS or not
             });
             res.status(200).json(user);
         } else if (googleUserDoc && googleUserDoc.googleID === sub) {
