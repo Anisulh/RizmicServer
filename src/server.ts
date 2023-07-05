@@ -24,7 +24,8 @@ app.use(httpLogger);
 const allowedOrigins = ['http://localhost:5173', 'http://rizmicfitsclient.s3-website-us-east-1.amazonaws.com'];
 
 const options: CorsOptions = {
-    origin: allowedOrigins
+    origin: allowedOrigins,
+    credentials: true,
 };
 
 app.use(cors(options));
