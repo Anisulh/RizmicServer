@@ -40,6 +40,21 @@ const updateProfileData = {
 const partialUpdateProfileData = {
     firstName: 'Roger'
 };
+const validPasswordData = {
+    currentPassword: '1234567aA',
+    newPassword: '31231aAA',
+    confirmPassword: '31231aAA'
+};
+const invalidCurrentPasswordData = {
+    currentPassword: '1231567aA',
+    newPassword: '31231aAA',
+    confirmPassword: '31231aAA'
+};
+const invalidConfirmPasswordData = {
+    currentPassword: '1234567aA',
+    newPassword: '31231aAA',
+    confirmPassword: '3123aAA'
+};
 
 let token: string | undefined;
 beforeEach(async () => {
@@ -52,7 +67,7 @@ beforeEach(async () => {
     newUser.password = hashedPassword;
     const createdUser = await User.create(newUser);
     const userID = createdUser._id;
-    token = generateToken(userID);
+    token = generateToken(userID) as string;
 });
 
 describe('User registration', () => {
@@ -65,7 +80,6 @@ describe('User registration', () => {
         expect(response.body).toMatchObject({
             firstName: expect.any(String),
             lastName: expect.any(String),
-            token: expect.any(String)
         });
     });
     it('Should return 400 if user exists', async () => {
@@ -84,7 +98,6 @@ describe('User login', () => {
         expect(response.body).toMatchObject({
             firstName: expect.any(String),
             lastName: expect.any(String),
-            token: expect.any(String)
         });
     });
     it('Should return 400 if user does not exist in DB', async () => {
@@ -115,7 +128,7 @@ describe('Forgot password', () => {
             .expect(400);
     });
     it('Should return 200 if email was sent to reset password', async () => {
-        const response = await request(app)
+        await request(app)
             .post('/api/user/forgotpassword')
             .send({ email: existingUser.email })
             .expect(200);
@@ -124,10 +137,10 @@ describe('Forgot password', () => {
 
 describe('Update user profile', () => {
     it('Should update the profile and return the updated instance', async () => {
-        const { firstName, lastName, phoneNumber } = updateProfileData;
+        const { firstName, lastName } = updateProfileData;
         const response = await request(app)
             .post('/api/user/updateProfile')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .send(updateProfileData)
             .expect(200);
         expect(response.body).toEqual(
@@ -142,7 +155,7 @@ describe('Update user profile', () => {
         const { firstName } = partialUpdateProfileData;
         const response = await request(app)
             .post('/api/user/updateProfile')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .send(partialUpdateProfileData)
             .expect(200);
         expect(response.body).toEqual(
@@ -154,41 +167,25 @@ describe('Update user profile', () => {
     });
 });
 
-const validPasswordData = {
-    currentPassword: '1234567aA',
-    newPassword: '31231aAA',
-    confirmPassword: '31231aAA'
-};
-const invalidCurrentPasswordData = {
-    currentPassword: '1231567aA',
-    newPassword: '31231aAA',
-    confirmPassword: '31231aAA'
-};
-const invalidConfirmPasswordData = {
-    currentPassword: '1234567aA',
-    newPassword: '31231aAA',
-    confirmPassword: '3123aAA'
-};
-
 describe('Changing users password', () => {
     it('Should change users password', async () => {
         return await request(app)
             .post('/api/user/changePassword')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .send(validPasswordData)
             .expect(200);
     });
     it('Should not change password if current password doesnt match', async () => {
         return await request(app)
             .post('/api/user/changePassword')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .send(invalidCurrentPasswordData)
             .expect(400);
     });
     it('Should not change password if the new password does not match confirm password', async () => {
         return await request(app)
             .post('/api/user/changePassword')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .send(invalidConfirmPasswordData)
             .expect(400);
     });
@@ -198,7 +195,7 @@ describe('Update profile image', () => {
     it('Should return 200 and user instance along with image link', async () => {
         const response = await request(app)
             .post('/api/user/updateProfileImage')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .set('Content-Type', 'multipart/form-data')
             .attach('image', `${__dirname}/assets/Useravatar.png`)
             .expect(200);
