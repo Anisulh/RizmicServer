@@ -12,20 +12,21 @@ import generationRouter from './components/fitGeneration/route';
 import outfitRouter from './components/outfits/route';
 import Rollbar from 'rollbar';
 import cookieParser from 'cookie-parser';
+import config from './config/config';
 
 const app: Application = express();
 const rollbar = new Rollbar({
-    accessToken: 'fd33c0c14321416298b161b7983a0c9c',
+    accessToken: config.rollBarAccessToken,
     captureUncaught: true,
-    captureUnhandledRejections: true,
-  })
+    captureUnhandledRejections: true
+});
 dbConnection();
 app.use(httpLogger);
-const allowedOrigins = ['http://localhost:5173', 'http://rizmicfitsclient.s3-website-us-east-1.amazonaws.com'];
+const allowedOrigins = [config.clientHost.local, config.clientHost.production];
 
 const options: CorsOptions = {
     origin: allowedOrigins,
-    credentials: true,
+    credentials: true
 };
 
 app.use(cors(options));
