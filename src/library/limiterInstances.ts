@@ -2,12 +2,9 @@ import { Redis } from 'ioredis';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import config from '../config/config';
 
-const redisConfig = config.redis;
-
 export const redis = new Redis({
-    host: redisConfig.host,
-    port: redisConfig.port as number,
-    tls: {}, // Set the tls key as an empty object
+    host: config.redis.host,
+    port: Number(config.redis.port),
     showFriendlyErrorStack: true
 });
 

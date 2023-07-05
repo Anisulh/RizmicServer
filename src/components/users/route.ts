@@ -9,7 +9,8 @@ import {
     loginUser,
     registerUser,
     forgotUserPassword,
-    resetPasswordController
+    resetPasswordController,
+    validateUser
 } from './controller';
 import {
     changePasswordSchema,
@@ -32,6 +33,7 @@ userRouter.post(
     updateProfile
 );
 userRouter.get('/getUser', authorization, getUser);
+userRouter.get('/validate', authorization, validateUser);
 userRouter.post(
     '/changePassword',
     authorization,

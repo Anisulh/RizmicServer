@@ -1,5 +1,5 @@
 import config from '../../../config/config';
-import { AnyObject, Types } from 'mongoose';
+import { AnyObject } from 'mongoose';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../model';
 import { Response } from 'express';
@@ -9,17 +9,9 @@ import {
     HttpCode
 } from '../../../library/errorHandler';
 import { generateToken } from './jwt';
+import { IUser } from '../interface';
 
 const client = new OAuth2Client(config.google.googleClientID);
-interface IUser {
-    _id: Types.ObjectId;
-    firstName: string;
-    lastName: string;
-    password?: string;
-    phoneNumber?: string;
-    profilePicture?: string;
-    token?: string;
-}
 
 export const verifyGoogleToken = async (token: string) => {
     try {
@@ -56,14 +48,17 @@ export const googleRegister = async (googleToken: string, res: Response) => {
             profilePicture: picture
         });
         if (createdUser) {
-            
             const createdUserData: IUser = { ...createdUser._doc };
             const userData = {
                 firstName: createdUserData.firstName,
                 lastName: createdUserData.lastName,
-                profilePicture: createdUserData.profilePicture,
-                token: generateToken(createdUserData._id)
-            }
+                profilePicture: createdUserData.profilePicture
+            };
+            res.cookie('token', generateToken(createdUserData._id) as string, {
+                httpOnly: true,
+                sameSite: 'strict', // helps to prevent CSRF attacks
+                secure: false // ensures the cookie is only sent over HTTPS or not
+            });
             res.status(201).json(userData);
         } else {
             const error = new Error('unable to save user instance');
@@ -94,16 +89,24 @@ export const googleLogin = async (googleToken: string, res: Response) => {
             );
 
             const user: IUser = googleUserDoc;
-            user['token'] = generateToken(googleUserDoc._id);
             delete user.password;
+            res.cookie('token', generateToken(user._id) as string, {
+                httpOnly: true,
+                sameSite: 'strict', // helps to prevent CSRF attacks
+                secure: false // ensures the cookie is only sent over HTTPS or not
+            });
             res.status(200).json(user);
         } else if (googleUserDoc && googleUserDoc.googleID === sub) {
             const userData = {
                 firstName: googleUserDoc.firstName,
                 lastName: googleUserDoc.lastName,
-                profilePicture: googleUserDoc.profilePicture,
-                token: generateToken(googleUserDoc._id)
-            }
+                profilePicture: googleUserDoc.profilePicture
+            };
+            res.cookie('token', generateToken(googleUserDoc._id) as string, {
+                httpOnly: true,
+                sameSite: 'strict', // helps to prevent CSRF attacks
+                secure: false // ensures the cookie is only sent over HTTPS or not
+            });
             res.status(200).json(userData);
         } else {
             const appError = new AppError({

@@ -48,7 +48,7 @@ const existingClothesWithImage = {
 };
 let token: string | undefined;
 let createdClothesId: Types.ObjectId;
-let createdClothesIdWithImage: Types.ObjectId
+let createdClothesIdWithImage: Types.ObjectId;
 let userID: Types.ObjectId;
 
 beforeAll(async () => {
@@ -62,12 +62,12 @@ beforeAll(async () => {
         const createdUser: AnyObject = await User.create(existingUser);
         if (createdUser) {
             const createdUserData = { ...createdUser._doc };
-            token = generateToken(createdUserData._id);
+            token = generateToken(createdUserData._id) as string;
             userID = createdUserData._id;
         }
     } else {
         userID = userInDB._id;
-        token = generateToken(userInDB._id);
+        token = generateToken(userInDB._id) as string;
     }
     const clothesData = { ...existingClothes, userID };
     const createdClothes = await Clothes.create(clothesData);
@@ -78,18 +78,18 @@ describe('Authorization Middleware', () => {
     it('Should return 200 if valid token', async () => {
         return await request(app)
             .get('/api/clothes/')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .expect(200);
     });
     it('Should return 400 if no token provided', async () => {
-        return await request(app).get('/api/clothes/').expect(400);
+        return await request(app).get('/api/clothes/').expect(401);
     });
     it('Should return 400 if invalid token provided', async () => {
         const invalidToken = 'invalid';
         return await request(app)
             .get('/api/clothes/')
-            .set('Authorization', `Bearer ${invalidToken}`)
-            .expect(400);
+            .set('Cookie', `token=${invalidToken}`)
+            .expect(401);
     });
 });
 
@@ -97,7 +97,7 @@ describe('Get all clothes', () => {
     it('Should return 200 and all clothes instances', async () => {
         const response = await request(app)
             .get('/api/clothes/')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .expect(200);
 
         expect(response.body).toEqual(
@@ -123,7 +123,7 @@ describe('Create new clothes', () => {
     it('Should return 201 and clothes instance along with image link', async () => {
         const response = await request(app)
             .post('/api/clothes/')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .set('Content-Type', 'multipart/form-data')
             .field(nonExistingClothesWithImage)
             .field('bodyLocation[]', 'upperBody')
@@ -145,12 +145,12 @@ describe('Create new clothes', () => {
                 updatedAt: expect.any(String)
             })
         );
-         createdClothesIdWithImage = response.body._id
+        createdClothesIdWithImage = response.body._id;
     });
     it('Should return 201 and clothes instance without image link', async () => {
         const response = await request(app)
             .post('/api/clothes/')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .send(nonExistingClothes)
             .expect(201);
         expect(response.body).toEqual(
@@ -171,7 +171,7 @@ describe('Create new clothes', () => {
     it('Should return 400 when a required field is missing', async () => {
         return await request(app)
             .post('/api/clothes/')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .send(invalidClothes)
             .expect(400);
     });
@@ -181,7 +181,7 @@ describe('Get specific clothes', () => {
     it('Should return 200 and clothes instance', async () => {
         const response = await request(app)
             .get(`/api/clothes/${createdClothesId}`)
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .expect(200);
 
         expect(response.body).toMatchObject({
@@ -203,7 +203,7 @@ describe('Updating Clothes', () => {
     it('Should return 200 and updated clothes instance that didnt have image with image', async () => {
         const response = await request(app)
             .put(`/api/clothes/${createdClothesId}`)
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .field({ color: 'red', category: 'sweater' })
             .attach('image', `${__dirname}/image.jpg`)
             .expect(200);
@@ -227,7 +227,7 @@ describe('Updating Clothes', () => {
     it('Should return 200 and updated clothes instance, replacing old image with new image', async () => {
         const response = await request(app)
             .put(`/api/clothes/${createdClothesIdWithImage}`)
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .field({ color: 'red', category: 'sweater' })
             .attach('image', `${__dirname}/image.jpg`)
             .expect(200);
@@ -254,7 +254,7 @@ describe('Deleteing Clothes', () => {
     it('Should return 200 and id of deleted clothes', async () => {
         const response = await request(app)
             .delete(`/api/clothes/${createdClothesId}`)
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .expect(200);
 
         expect(response.body).toMatchObject({

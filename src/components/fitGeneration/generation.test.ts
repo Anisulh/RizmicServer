@@ -74,12 +74,12 @@ beforeAll(async () => {
         const createdUser: AnyObject = await User.create(existingUser);
         if (createdUser) {
             const createdUserData = { ...createdUser._doc };
-            token = generateToken(createdUserData._id);
+            token = generateToken(createdUserData._id) as string;
             userID = createdUserData._id;
         }
     } else {
         userID = userInDB._id;
-        token = generateToken(userInDB._id);
+        token = generateToken(userInDB._id) as string;
     }
     existingUpperBodyClothes.map(async (item) => {
         try {
@@ -103,7 +103,7 @@ describe('Generate fit', () => {
     it('Should return 200 and all generated instances', async () => {
         const response = await request(app)
             .post('/api/generation/')
-            .set('Authorization', `Bearer ${token}`)
+            .set('Cookie', `token=${token}`)
             .send({ style: 'monochrome' })
             .expect(200);
     });
