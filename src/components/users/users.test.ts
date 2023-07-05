@@ -81,6 +81,8 @@ describe('User registration', () => {
             firstName: expect.any(String),
             lastName: expect.any(String),
         });
+        expect(response.headers['set-cookie']).toBeDefined();
+        expect(response.headers['set-cookie'][0]).toMatch(/token=/);
     });
     it('Should return 400 if user exists', async () => {
         return request(app)
@@ -99,6 +101,8 @@ describe('User login', () => {
             firstName: expect.any(String),
             lastName: expect.any(String),
         });
+        expect(response.headers['set-cookie']).toBeDefined();
+        expect(response.headers['set-cookie'][0]).toMatch(/token=/);
     });
     it('Should return 400 if user does not exist in DB', async () => {
         return request(app)
