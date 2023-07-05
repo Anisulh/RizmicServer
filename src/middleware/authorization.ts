@@ -14,7 +14,7 @@ export const authorization = async (
     next: NextFunction
 ) => {
     try {
-        const token = req.cookies.token;        
+        const token = req.cookies.token;
         if (!token) {
             const appError = new AppError({
                 name: 'Missing JWT',
