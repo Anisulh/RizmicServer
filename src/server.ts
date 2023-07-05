@@ -11,6 +11,7 @@ import clothesRouter from './components/clothes/route';
 import generationRouter from './components/fitGeneration/route';
 import outfitRouter from './components/outfits/route';
 import Rollbar from 'rollbar';
+import cookieParser from 'cookie-parser';
 
 const app: Application = express();
 const rollbar = new Rollbar({
@@ -29,6 +30,7 @@ const options: CorsOptions = {
 app.use(cors(options));
 app.use(helmet());
 app.disable('x-powered-by');
+app.use(cookieParser());
 
 app.use(rateLimiterMiddleware);
 
