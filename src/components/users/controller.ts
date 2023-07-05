@@ -128,6 +128,10 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 };
 
+export const validateUser = async (req: Request, res: Response) => {
+    res.status(200).json({success:true});
+};
+
 export const forgotUserPassword = async (req: Request, res: Response) => {
     try {
         const { email } = req.body;
@@ -345,7 +349,7 @@ export const updateProfileImage = async (req: Request, res: Response) => {
             lastName: updatedUser?.lastName,
             profilePicture: updatedUser?.profilePicture
         };
-       return res.status(200).json(userData);
+        return res.status(200).json(userData);
     } catch (error) {
         if (error instanceof Error) {
             logger.error(error);
