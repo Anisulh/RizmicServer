@@ -12,8 +12,10 @@ export const listOutfits = async (req: Request, res: Response) => {
         const outfits = await Outfits.find({ userID: _id }).populate('clothes');
         res.status(200).json({ outfits });
     } catch (e) {
-        const error = new Error(`Error occured during listing outfits: ${e}`);
-        errorHandler.handleError(error, res);
+        const criticalError = new Error(
+            `Error occured during listing outfits: ${e}`
+        );
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 export const createOutfit = async (req: Request, res: Response) => {
@@ -39,11 +41,11 @@ export const createOutfit = async (req: Request, res: Response) => {
             const criticalError = new Error(
                 'Failed to save new clothes instance'
             );
-            return errorHandler.handleError(criticalError, res);
+            return errorHandler.handleError(criticalError, req, res);
         }
     } catch (error) {
         const criticalError = new Error('Failed getting all Clothes');
-        errorHandler.handleError(criticalError, res);
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 export const listFavoriteOutfits = async (req: Request, res: Response) => {
@@ -55,10 +57,10 @@ export const listFavoriteOutfits = async (req: Request, res: Response) => {
         });
         return res.status(200).json({ favoriteOutfits });
     } catch (e) {
-        const error = new Error(
+        const criticalError = new Error(
             `Error occured during listing favorite outfits: ${e}`
         );
-        errorHandler.handleError(error, res);
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 export const favoriteOutfit = async (req: Request, res: Response) => {
@@ -74,12 +76,12 @@ export const favoriteOutfit = async (req: Request, res: Response) => {
             description: 'Unable to update outfit',
             httpCode: HttpCode.BAD_REQUEST
         });
-        return errorHandler.handleError(appError, res);
+        return errorHandler.handleError(appError, req, res);
     } catch (e) {
-        const error = new Error(
+        const criticalError = new Error(
             `Error occured during favoriting an outfit: ${e}`
         );
-        errorHandler.handleError(error, res);
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 export const unfavoriteOutfit = async (req: Request, res: Response) => {
@@ -95,12 +97,12 @@ export const unfavoriteOutfit = async (req: Request, res: Response) => {
             description: 'Unable to update outfit',
             httpCode: HttpCode.BAD_REQUEST
         });
-        return errorHandler.handleError(appError, res);
+        return errorHandler.handleError(appError, req, res);
     } catch (e) {
-        const error = new Error(
+        const criticalError = new Error(
             `Error occured during favoriting an outfit: ${e}`
         );
-        errorHandler.handleError(error, res);
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 export const updateOutfit = async (req: Request, res: Response) => {
@@ -109,10 +111,7 @@ export const updateOutfit = async (req: Request, res: Response) => {
         const outfitID = req.params.outfitID;
         const selectedOutfit = await Outfits.findById(outfitID);
         let imageUpload;
-        if (
-            selectedOutfit &&
-            String(selectedOutfit?.userID) === String(_id)
-        ) {
+        if (selectedOutfit && String(selectedOutfit?.userID) === String(_id)) {
             if (selectedOutfit.cloudinaryID && req.file) {
                 await deleteFromCloudinary(selectedOutfit.cloudinaryID);
                 const buffer = req.file.buffer.toString('base64');
@@ -140,56 +139,54 @@ export const updateOutfit = async (req: Request, res: Response) => {
                     'User does not match the associated user of the clothes',
                 httpCode: HttpCode.UNAUTHORIZED
             });
-            errorHandler.handleError(appError, res);
+            errorHandler.handleError(appError, req, res);
         }
     } catch (error) {
         const criticalError = new Error(
             `Failed to update clothes due to error: ${error}`
         );
-        errorHandler.handleError(criticalError, res);
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 export const deleteOutfit = async (req: Request, res: Response) => {
     try {
         const { _id } = req.user;
         const outfitID = req.params.outfitID;
-        if(!outfitID){
+        if (!outfitID) {
             const appError = new AppError({
                 name: 'Param Requirements Not Met',
-                description:
-                    'outfitID was not sent to server',
+                description: 'outfitID was not sent to server',
                 httpCode: HttpCode.BAD_REQUEST
             });
-            errorHandler.handleError(appError, res);
+            errorHandler.handleError(appError, req, res);
         }
         const selectedOutfit = await Outfits.findById(outfitID);
-        if(!selectedOutfit){
+        if (!selectedOutfit) {
             const appError = new AppError({
                 name: 'Document Not Found',
-                description:
-                    'Unable to find selection',
+                description: 'Unable to find selection',
                 httpCode: HttpCode.NOT_FOUND
             });
-            errorHandler.handleError(appError, res);
+            errorHandler.handleError(appError, req, res);
         } else if (String(selectedOutfit.userID) === String(_id)) {
             if (selectedOutfit.cloudinaryID) {
                 await deleteFromCloudinary(selectedOutfit.cloudinaryID);
             }
             await selectedOutfit.delete();
             res.status(200).json({ id: outfitID });
-        } else  {
+        } else {
             const appError = new AppError({
                 name: 'Unauthorized update',
                 description:
                     'User does not match the associated user of the clothes',
                 httpCode: HttpCode.UNAUTHORIZED
             });
-            errorHandler.handleError(appError, res);
+            errorHandler.handleError(appError, req, res);
         }
     } catch (error) {
         const criticalError = new Error(
             `Failed to update clothes due to error: ${error}`
         );
-        errorHandler.handleError(criticalError, res);
+        errorHandler.handleError(criticalError, req, res);
     }
 };

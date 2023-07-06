@@ -19,7 +19,9 @@ export const generateFit = async (req: Request, res: Response) => {
         const fits = algorithm(tops, bottoms, style, vibe);
         res.status(200).json({ fits });
     } catch (e) {
-        const error = new Error(`Error occured during fit generation: ${e}`);
-        errorHandler.handleError(error, res);
+        const criticalError = new Error(
+            `Error occured during fit generation: ${e}`
+        );
+        errorHandler.handleError(criticalError, req, res);
     }
 };
