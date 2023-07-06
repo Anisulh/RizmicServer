@@ -13,8 +13,9 @@ export const reqValidation = (schema: ObjectSchema) => {
                     ? req.headers['authorization'].split(' ')[1]
                     : null;
 
-            const googleToken = token && await verifyGoogleToken(token) || false
-            if  (googleToken) {
+            const googleToken =
+                (token && (await verifyGoogleToken(token))) || false;
+            if (googleToken) {
                 next();
             } else {
                 await schema.validateAsync(req.body);
@@ -27,18 +28,17 @@ export const reqValidation = (schema: ObjectSchema) => {
                     new AppError({
                         name: 'JOI validation Error',
                         httpCode: HttpCode.BAD_REQUEST,
-                        description: 'One or more fields submitted was not valid'
+                        description:
+                            'One or more fields submitted was not valid'
                     }),
+                    req,
                     res
                 );
             } else {
-                if (typeof error === 'string') {
-                    errorHandler.handleError(new Error(error), res);
-                } else if (error instanceof Error) {
-                    errorHandler.handleError(error, res);
-                } else {
-                    logger.error('Unable to display reason for reqValidation error');
-                }
+                const criticalError = new Error(
+                    `Unknown error occured in reqValidation: ${error}`
+                );
+                errorHandler.handleError(criticalError, req, res);
             }
         }
     };

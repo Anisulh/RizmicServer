@@ -21,7 +21,7 @@ export const authorization = async (
                 description: 'No JWT found in cookie',
                 httpCode: HttpCode.UNAUTHORIZED
             });
-            return errorHandler.handleError(appError, res);
+            return errorHandler.handleError(appError, req, res);
         }
 
         const decodedToken = jwt.verify(token, config.jwtSecret) as {
@@ -34,7 +34,7 @@ export const authorization = async (
                 description: 'Issuer does not match',
                 httpCode: HttpCode.UNAUTHORIZED
             });
-            return errorHandler.handleError(appError, res);
+            return errorHandler.handleError(appError, req, res);
         }
 
         if (decodedToken.id) {
@@ -46,7 +46,7 @@ export const authorization = async (
                 description: 'No _id field in JWT',
                 httpCode: HttpCode.UNAUTHORIZED
             });
-            return errorHandler.handleError(appError, res);
+            return errorHandler.handleError(appError, req, res);
         }
     } catch (error) {
         if (
@@ -59,7 +59,7 @@ export const authorization = async (
                 description: error.message,
                 httpCode: HttpCode.UNAUTHORIZED
             });
-            return errorHandler.handleError(appError, res);
+            return errorHandler.handleError(appError, req, res);
         }
         const criticalError = new Error(
             `Critical Error occured at authorization: ${error}`

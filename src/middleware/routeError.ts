@@ -1,4 +1,4 @@
-import {  Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { AppError, errorHandler, HttpCode } from '../library/errorHandler';
 import logger from '../library/logger';
 
@@ -10,16 +10,12 @@ const routeError = async (req: Request, res: Response) => {
             description: "The route you're looking for does not exit",
             httpCode: HttpCode.NOT_FOUND
         });
-        errorHandler.handleError(appError, res);
+        errorHandler.handleError(appError, req, res);
     } catch (error) {
-        if (error instanceof Error) {
-            errorHandler.handleError(error);
-        } else {
-            errorHandler.handleError(
-                new Error('Route Error Middleware not working properly...'),
-                res
-            );
-        }
+        const criticalError = new Error(
+            `Unknown error occured in routeError: ${error}`
+        );
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 

@@ -1,49 +1,60 @@
 import bcrypt from 'bcrypt';
-import { Response } from 'express';
-import { AnyObject, Types } from 'mongoose';
+import { Request, Response } from 'express';
+import { AnyObject } from 'mongoose';
 import { RateLimiterRedis, RateLimiterRes } from 'rate-limiter-flexible';
 import {
     AppError,
     errorHandler,
     HttpCode
 } from '../../../library/errorHandler';
-import logger from '../../../library/logger';
 import User from '../model';
 import { generateToken } from './jwt';
 import { IUser, IUserRegister } from '../interface';
 import config from '../../../config/config';
 
-export const emailRegister = async (userData: IUserRegister, res: Response) => {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(userData.password, salt);
-    userData.password = hashedPassword;
-    delete userData.confirmPassword;
+export const emailRegister = async (
+    userData: IUserRegister,
+    req: Request,
+    res: Response
+) => {
+    try {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(userData.password, salt);
+        userData.password = hashedPassword;
+        delete userData.confirmPassword;
 
-    //add user to db
-    const createdUser: AnyObject = await User.create(userData);
-    if (createdUser) {
-        const createdUserData: IUser = { ...createdUser._doc };
-        const userData = {
-            firstName: createdUserData.firstName,
-            lastName: createdUserData.lastName,
-            profilePicture: createdUserData.profilePicture
-        };
-        res.cookie('token', generateToken(createdUserData._id) as string, {
-            httpOnly: true,
-            sameSite: 'strict', // helps to prevent CSRF attacks
-            secure: config.env === 'production' ? true : false // ensures the cookie is only sent over HTTPS or not
-        });
+        //add user to db
+        const createdUser: AnyObject = await User.create(userData);
+        if (createdUser) {
+            const createdUserData: IUser = { ...createdUser._doc };
+            const userData = {
+                firstName: createdUserData.firstName,
+                lastName: createdUserData.lastName,
+                profilePicture: createdUserData.profilePicture
+            };
+            res.cookie('token', generateToken(createdUserData._id) as string, {
+                httpOnly: true,
+                sameSite: 'strict', // helps to prevent CSRF attacks
+                secure: config.env === 'production' ? true : false // ensures the cookie is only sent over HTTPS or not
+            });
 
-        res.status(201).json(userData);
-    } else {
-        const error = new Error('Unable to save new user instance');
-        errorHandler.handleError(error, res);
+            res.status(201).json(userData);
+        } else {
+            const criticalError = new Error('Unable to save new user instance');
+            errorHandler.handleError(criticalError, req, res);
+        }
+    } catch (error) {
+        const criticalError = new Error(
+            `Unknown error occured in emailRegister: ${error}`
+        );
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 
 export const emailLogin = async (
     basicUserDoc: IUser,
     res: Response,
+    req: Request,
     password: string,
     limiterConsecutiveFailsByEmailAndIP: RateLimiterRedis,
     limiterSlowBruteByIP: RateLimiterRedis,
@@ -63,25 +74,17 @@ export const emailLogin = async (
                 limiterConsecutiveFailsByEmailAndIP.consume(emailIPkey)
             );
             await Promise.all(promises);
-            const error = new AppError({
+            const appError = new AppError({
                 httpCode: HttpCode.BAD_REQUEST,
                 description: 'Invalid Credentials'
             });
-            logger.error(error);
-            errorHandler.handleError(error, res);
+            errorHandler.handleError(appError, req, res);
             return;
         } catch (error: any) {
-            if (error instanceof Error) {
-                errorHandler.handleError(error, res);
-                return;
-            } else {
-                res.set(
-                    'Retry-After',
-                    String(Math.round(error.msBeforeNext / 1000) || 1)
-                );
-                res.status(429).send('Too Many Requests');
-                return;
-            }
+            const criticalError = new Error(
+                `Unknown error occured in emailLogin: ${error}`
+            );
+            errorHandler.handleError(criticalError, req, res);
         }
     }
     if (resEmailAndIP !== null && resEmailAndIP.consumedPoints > 0) {
