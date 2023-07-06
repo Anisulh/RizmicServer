@@ -15,7 +15,7 @@ import cookieParser from 'cookie-parser';
 import config from './config/config';
 
 const app: Application = express();
-const rollbar = new Rollbar({
+export const rollbar = new Rollbar({
     accessToken: config.rollBarAccessToken,
     captureUncaught: true,
     captureUnhandledRejections: true
