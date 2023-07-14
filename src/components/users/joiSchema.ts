@@ -4,7 +4,9 @@ export const registerSchema = Joi.object({
     firstName: Joi.string().alphanum().min(3).max(30).required(),
     lastName: Joi.string().alphanum().min(3).max(30).required(),
     password: Joi.string()
-        .pattern(new RegExp(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{5,}$/))
+        .pattern(
+            new RegExp(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*]{5,}$/)
+        )
         .required(),
     confirmPassword: Joi.ref('password'),
     email: Joi.string()
@@ -23,9 +25,12 @@ export const loginSchema = Joi.object({
             tlds: { allow: ['com', 'net'] }
         })
         .required(),
-    password: Joi.string().pattern(new RegExp(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{5,}$/)).required()
+    password: Joi.string()
+        .pattern(
+            new RegExp(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*]{5,}$/)
+        )
+        .required()
 });
-
 
 export const updateProfileSchema = Joi.object({
     firstName: Joi.string().alphanum().min(3).max(30),
@@ -34,7 +39,15 @@ export const updateProfileSchema = Joi.object({
 });
 
 export const changePasswordSchema = Joi.object({
-    currentPassword: Joi.string().pattern(new RegExp(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{5,}$/)).required(),
-    newPassword: Joi.string().pattern(new RegExp(/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{5,}$/)).required(),
-    confirmPassword: Joi.ref('newPassword'),
-})
+    currentPassword: Joi.string()
+        .pattern(
+            new RegExp(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*]{5,}$/)
+        )
+        .required(),
+    newPassword: Joi.string()
+        .pattern(
+            new RegExp(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*]{5,}$/)
+        )
+        .required(),
+    confirmPassword: Joi.ref('newPassword')
+});

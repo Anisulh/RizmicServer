@@ -2,7 +2,20 @@ import { Redis } from 'ioredis';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import config from '../config/config';
 
-export const redis = new Redis({showFriendlyErrorStack:true});
+const redisOptions =
+    config.env === 'production'
+        ? {
+              host: config.redis.host,
+              port: Number(config.redis.port),
+              tls: {},
+              showFriendlyErrorStack: true
+          }
+        : {
+              host: config.redis.host,
+              port: Number(config.redis.port),
+              showFriendlyErrorStack: true
+          };
+export const redis = new Redis(redisOptions);
 
 export const rateLimiter = new RateLimiterRedis({
     storeClient: redis,
@@ -18,7 +31,7 @@ export const limiterSlowBruteByIP = new RateLimiterRedis({
     duration: 60 * 60 * 24,
     blockDuration: 60 * 60 * 24 // Block for 1 day, if 100 wrong attempts per day
 });
- 
+
 export const limiterConsecutiveFailsByEmailAndIP = new RateLimiterRedis({
     storeClient: redis,
     keyPrefix: 'login_fail_consecutive_Email_and_ip',

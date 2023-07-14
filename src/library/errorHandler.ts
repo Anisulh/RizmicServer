@@ -1,6 +1,7 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { exitHandler } from './exitHandler';
 import logger from './logger';
+import { rollbar } from '../server';
 
 export enum HttpCode {
     OK = 200,
@@ -45,25 +46,36 @@ class ErrorHandler {
         }
         return false;
     }
-    private handleTrustedError(error: AppError, response: Response): void {
+    private handleTrustedError(
+        error: AppError,
+        response: Response,
+        request?: Request
+    ): void {
         response.status(error.httpCode).json({ message: error.message });
+        rollbar.error(error, request, { level: 'error' });
     }
     private handleCriticalError(
-        error: Error | AppError,
+        error: Error,
+        request?: Request,
         response?: Response
     ): void | Response {
         if (response) {
             return response.status(HttpCode.INTERNAL_SERVER_ERROR);
         }
+        rollbar.error(error, request, { level: 'critical' });
         logger.error('Application encountered a critical error... ');
         logger.error(error);
         exitHandler.handleExit(0);
     }
-    public handleError(error: Error | AppError, response?: Response): void {
+    public handleError(
+        error: Error | AppError,
+        request?: Request,
+        response?: Response
+    ): void {
         if (this.isTrustedError(error) && response) {
-            this.handleTrustedError(error as AppError, response);
+            this.handleTrustedError(error as AppError, response, request);
         } else {
-            this.handleCriticalError(error, response);
+            this.handleCriticalError(error, request, response);
         }
     }
 }

@@ -29,6 +29,13 @@ const existingUpperBodyClothes = [
         variant: 'crew-neck',
         color: 'rgb(155, 102, 112)',
         layerable: true
+    },
+    {
+        bodyLocation: ['upperBody'],
+        category: 'tshirt',
+        variant: 'jersey',
+        color: 'rgb(90, 146, 237)',
+        layerable: true
     }
 ];
 
@@ -46,6 +53,13 @@ const existingLowerBodyClothes = [
         variant: 'jeans',
         color: 'rgb(155, 92, 102)',
         layerable: true
+    },
+    {
+        bodyLocation: ['lowerBody'],
+        category: 'pants',
+        variant: 'item',
+        color: 'rgb(34, 108, 227)',
+        layerable: true
     }
 ];
 
@@ -60,14 +74,14 @@ beforeAll(async () => {
         const createdUser: AnyObject = await User.create(existingUser);
         if (createdUser) {
             const createdUserData = { ...createdUser._doc };
-            token = generateToken(createdUserData._id);
+            token = generateToken(createdUserData._id) as string;
             userID = createdUserData._id;
         }
     } else {
         userID = userInDB._id;
-        token = generateToken(userInDB._id);
+        token = generateToken(userInDB._id) as string;
     }
-    existingUpperBodyClothes.forEach(async (item) => {
+    existingUpperBodyClothes.map(async (item) => {
         try {
             const clothesData = { ...item, userID };
             await Clothes.create(clothesData);
@@ -75,7 +89,7 @@ beforeAll(async () => {
             console.log(error);
         }
     });
-    existingLowerBodyClothes.forEach(async (item) => {
+    existingLowerBodyClothes.map(async (item) => {
         try {
             const clothesData = { ...item, userID };
             await Clothes.create(clothesData);
@@ -88,11 +102,9 @@ beforeAll(async () => {
 describe('Generate fit', () => {
     it('Should return 200 and all generated instances', async () => {
         const response = await request(app)
-            .post('/generation/')
-            .set('Authorization', `Bearer ${token}`)
-            .send({style:'monochrome'})
+            .post('/api/generation/')
+            .set('Cookie', `token=${token}`)
+            .send({ style: 'monochrome' })
             .expect(200);
-        console.log(response.body);
-      
     });
 });

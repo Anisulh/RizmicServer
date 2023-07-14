@@ -18,6 +18,7 @@ const resetPassword = async (
     userID: string,
     token: string,
     passwordData: IPasswordData,
+    req:Request,
     res: Response
 ) => {
     try {
@@ -27,7 +28,7 @@ const resetPassword = async (
                 httpCode: HttpCode.NOT_FOUND,
                 description: 'Could not find reset token'
             });
-            errorHandler.handleError(appError, res);
+            errorHandler.handleError(appError, req, res);
             return;
         } else {
             const isValid = await bcrypt.compare(
@@ -39,7 +40,7 @@ const resetPassword = async (
                     httpCode: HttpCode.BAD_REQUEST,
                     description: 'Not a valid token'
                 });
-                errorHandler.handleError(appError, res);
+                errorHandler.handleError(appError, req, res);
             }
             const { password, confirmPassword } = passwordData;
             if (password !== confirmPassword) {
@@ -47,7 +48,7 @@ const resetPassword = async (
                     httpCode: HttpCode.BAD_REQUEST,
                     description: 'Password and confirm password do not match.'
                 });
-                errorHandler.handleError(appError, res);
+                errorHandler.handleError(appError, req, res);
             }
             const hash = await bcrypt.hash(password, 10);
             await User.updateOne({ _id: userID }, { password: hash });
@@ -71,7 +72,7 @@ const resetPassword = async (
                     httpCode: HttpCode.BAD_REQUEST,
                     description: 'User does not exist'
                 });
-                errorHandler.handleError(appError, res);
+                errorHandler.handleError(appError, req, res);
                 return;
             }
         }

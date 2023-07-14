@@ -10,7 +10,7 @@ export const getAllClothes = async (req: Request, res: Response) => {
         res.status(200).json(clothes);
     } catch (error) {
         const criticalError = new Error('Failed getting all Clothes');
-        errorHandler.handleError(criticalError, res);
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 
@@ -35,11 +35,11 @@ export const createClothes = async (req: Request, res: Response) => {
             const criticalError = new Error(
                 'Failed to save new clothes instance'
             );
-            errorHandler.handleError(criticalError, res);
+            errorHandler.handleError(criticalError, req, res);
         }
     } catch (error) {
         const criticalError = new Error('Failed getting all Clothes');
-        errorHandler.handleError(criticalError, res);
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 
@@ -59,13 +59,13 @@ export const getSpecificClothes = async (req: Request, res: Response) => {
                     'Unable to find clothes matching the provided id or belonging to user',
                 httpCode: HttpCode.NOT_FOUND
             });
-            errorHandler.handleError(appError, res);
+            errorHandler.handleError(appError, req, res);
         }
     } catch (error) {
         const criticalError = new Error(
             `Unhandled error has occure in getSpecificClothes function: ${error} `
         );
-        errorHandler.handleError(criticalError, res);
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 
@@ -103,16 +103,16 @@ export const updateClothes = async (req: Request, res: Response) => {
             const appError = new AppError({
                 name: 'Unauthorized update',
                 description:
-                    'User token does not match the associated user of the clothes',
+                    'User does not match the associated user of the clothes',
                 httpCode: HttpCode.UNAUTHORIZED
             });
-            errorHandler.handleError(appError, res);
+            errorHandler.handleError(appError, req, res);
         }
     } catch (error) {
         const criticalError = new Error(
             `Failed to update clothes due to error: ${error}`
         );
-        errorHandler.handleError(criticalError, res);
+        errorHandler.handleError(criticalError, req, res);
     }
 };
 
@@ -134,15 +134,15 @@ export const deleteClothes = async (req: Request, res: Response) => {
             const appError = new AppError({
                 name: 'Unauthorized update',
                 description:
-                    'User token does not match the associated user of the clothes',
+                    'User does not match the associated user of the clothes',
                 httpCode: HttpCode.UNAUTHORIZED
             });
-            errorHandler.handleError(appError, res);
+            errorHandler.handleError(appError, req, res);
         }
     } catch (error) {
         const criticalError = new Error(
             `Failed to update clothes due to error: ${error}`
         );
-        errorHandler.handleError(criticalError, res);
+        errorHandler.handleError(criticalError, req, res);
     }
 };

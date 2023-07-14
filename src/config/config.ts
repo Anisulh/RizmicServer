@@ -34,7 +34,16 @@ const config = {
         api_key: process.env.CLOUDINARY_API_KEY || '',
         api_secret: process.env.CLOUDINARY_API_SECRET || '',
         preset: process.env.CLOUDINARY_PRESET || ''
-    }
+    },
+    redis: {
+        host: process.env.REDIS_HOST || '',
+        port: process.env.REDIS_PORT || 6379,
+    },
+    clientHost: {
+        local: process.env.LOCAL_CLIENT || '',
+        production: process.env.PRODUCTION_CLIENT || ''
+    },
+    rollBarAccessToken: process.env.ROLLBAR_TOKEN || ''
 };
 
 export default config;

@@ -9,14 +9,10 @@ const dbConnection = async (): Promise<void> => {
         await mongoose.connect(config.mongoDBUrl);
         logger.info('Successfully connected to mongoDB');
     } catch (error) {
-        logger.error('Unable to connect to database');
-        if (typeof error === 'string') {
-            errorHandler.handleError(new Error(error));
-        } else if (error instanceof Error) {
-            errorHandler.handleError(error);
-        } else {
-            errorHandler.handleError(new Error('Unable to connect to mongoDB'));
-        }
+        const criticalError = new Error(
+            `Unknown error occured when connecting to MongoDB: ${error}`
+        );
+        errorHandler.handleError(criticalError);
     }
 };
 
