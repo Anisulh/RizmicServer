@@ -16,49 +16,91 @@ const existingUser = {
 };
 
 const existingUpperBodyClothes = [
+    // {
+    //     bodyLocation: ['upperBody'],
+    //     category: 'sweater',
+    //     variant: 'Mock-neck',
+    //     color: 'rgb(50,205,50)',
+    //     layerable: true
+    // },
+    // {
+    //     bodyLocation: ['upperBody'],
+    //     category: 'tshirt',
+    //     variant: 'crew-neck',
+    //     color: 'rgb(155, 102, 112)',
+    //     layerable: true
+    // },
     {
         bodyLocation: ['upperBody'],
-        category: 'sweater',
-        variant: 'Mock-neck',
-        color: 'rgb(50,205,50)',
+        category: 'tshirt',
+        variant: 'crew-neck',
+        color: 'rgb(90, 146, 237)',
         layerable: true
     },
     {
         bodyLocation: ['upperBody'],
         category: 'tshirt',
         variant: 'crew-neck',
-        color: 'rgb(155, 102, 112)',
+        color: 'rgb(211, 179, 142)', // Tan
         layerable: true
     },
     {
         bodyLocation: ['upperBody'],
         category: 'tshirt',
-        variant: 'jersey',
-        color: 'rgb(90, 146, 237)',
+        variant: 'crew-neck',
+        color: 'rgb(70, 40, 40)', // Dark Brown
+        layerable: true
+    },
+    {
+        bodyLocation: ['upperBody'],
+        category: 'tshirt',
+        variant: 'crew-neck',
+        color: 'rgb(255, 0, 0)', // Non earth-tone color (Bright Red)
         layerable: true
     }
 ];
 
 const existingLowerBodyClothes = [
+    // {
+    //     bodyLocation: ['lowerBody'],
+    //     category: 'shorts',
+    //     variant: 'chino',
+    //     color: 'rgb(127,255,0)',
+    //     layerable: true
+    // },
+    // {
+    //     bodyLocation: ['lowerBody'],
+    //     category: 'pants',
+    //     variant: 'jeans',
+    //     color: 'rgb(155, 92, 102)',
+    //     layerable: true
+    // },
     {
         bodyLocation: ['lowerBody'],
-        category: 'shorts',
-        variant: 'chino',
-        color: 'rgb(127,255,0)',
+        category: 'pants',
+        variant: 'item',
+        color: 'rgb(34, 108, 227)',
         layerable: true
     },
     {
         bodyLocation: ['lowerBody'],
         category: 'pants',
         variant: 'jeans',
-        color: 'rgb(155, 92, 102)',
+        color: 'rgb(70, 40, 40)', // Dark Brown
         layerable: true
     },
     {
         bodyLocation: ['lowerBody'],
         category: 'pants',
-        variant: 'item',
-        color: 'rgb(34, 108, 227)',
+        variant: 'jeans',
+        color: 'rgb(50, 92, 60)', // Moss Green
+        layerable: true
+    },
+    {
+        bodyLocation: ['lowerBody'],
+        category: 'pants',
+        variant: 'jeans',
+        color: 'rgb(0, 255, 255)', // Non earth-tone color (Cyan)
         layerable: true
     }
 ];
@@ -100,11 +142,19 @@ beforeAll(async () => {
 });
 
 describe('Generate fit', () => {
-    it('Should return 200 and all generated instances', async () => {
+    // it('Should return 200 and all generated instances', async () => {
+    //     const response = await request(app)
+    //         .post('/generation/')
+    //         .set('Authorization', `Bearer ${token}`)
+    //         .send({ style: 'monochrome' })
+    //         .expect(200);
+    // });
+
+    it('Should return 200 and all generated instances for earth-tone style', async () => {
         const response = await request(app)
-            .post('/api/generation/')
-            .set('Cookie', `token=${token}`)
-            .send({ style: 'monochrome' })
+            .post('/generation/')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ style: 'earth-tone' })
             .expect(200);
     });
 });
