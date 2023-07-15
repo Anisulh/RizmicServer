@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { exitHandler } from './exitHandler';
 import logger from './logger';
 import { rollbar } from '../server';
+import config from '../config/config';
 
 export enum HttpCode {
     OK = 200,
@@ -65,7 +66,7 @@ class ErrorHandler {
         rollbar.error(error, request, { level: 'critical' });
         logger.error('Application encountered a critical error... ');
         logger.error(error);
-        exitHandler.handleExit(0);
+        config.env !== 'production' && exitHandler.handleExit(0);
     }
     public handleError(
         error: Error | AppError,
