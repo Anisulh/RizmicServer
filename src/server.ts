@@ -22,7 +22,7 @@ export const rollbar = new Rollbar({
 });
 dbConnection();
 app.use(httpLogger);
-const allowedOrigins = [config.clientHost.local, config.clientHost.production];
+const allowedOrigins = [config.clientHost];
 
 const options: CorsOptions = {
     origin: allowedOrigins,
