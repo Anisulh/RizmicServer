@@ -17,7 +17,7 @@ export const generateFit = async (req: Request, res: Response) => {
         });
 
         const fits = algorithm(tops, bottoms, style, vibe);
-        console.log('Successful fit: ', tops, ' ', bottoms);
+        console.log('SUCCESSFUL FIT:', fits);
         res.status(200).json({ fits });
     } catch (e) {
         const criticalError = new Error(
