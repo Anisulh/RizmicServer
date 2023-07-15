@@ -1,4 +1,4 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response } from 'express';
 import userRouter from './components/users/route';
 import dbConnection from './config/dbConnection';
 import httpLogger from './middleware/httpLogger';
@@ -40,6 +40,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 //routing
+app.use('/api', (req:Request,res:Response) => {
+    res.send("Server is live!")
+})
 app.use('/api/user', userRouter);
 app.use('/api/clothes', clothesRouter);
 app.use('/api/generation', generationRouter);
