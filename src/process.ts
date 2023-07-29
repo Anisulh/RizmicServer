@@ -15,14 +15,16 @@ process.on('uncaughtException', (error: Error) => {
     errorHandler.handleError(error);
 });
 
-process.on('SIGTERM', () => {
-    logger.error(
-        `Process ${process.pid} received SIGTERM: Exiting with code 0`
-    );
-    exitHandler.handleExit(0);
-});
+//The code below is not needed for lambda
 
-process.on('SIGINT', () => {
-    logger.error(`Process ${process.pid} received SIGINT: Exiting with code 0`);
-    exitHandler.handleExit(0);
-});
+// process.on('SIGTERM', () => {
+//     logger.error(
+//         `Process ${process.pid} received SIGTERM: Exiting with code 0`
+//     );
+//     exitHandler.handleExit(0);
+// });
+
+// process.on('SIGINT', () => {
+//     logger.error(`Process ${process.pid} received SIGINT: Exiting with code 0`);
+//     exitHandler.handleExit(0);
+// });
