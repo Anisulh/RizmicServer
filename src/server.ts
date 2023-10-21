@@ -40,7 +40,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 //routing
-app.use('/api', (req:Request,res:Response) => {
+app.get('/api', (req:Request,res:Response) => {
     res.send("Server is live!")
 })
 app.use('/api/user', userRouter);
