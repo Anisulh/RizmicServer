@@ -36,27 +36,38 @@ const format = winston.format.combine(
     )
 );
 
-const transports = [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: 'logs/combined.log' }),
-    new winston.transports.File({
-        filename: 'logs/error.log',
-        level: 'error'
-    })
-];
+const transports =
+    config.env === 'production'
+        ? [new winston.transports.Console()]
+        : [
+              new winston.transports.Console(),
+              new winston.transports.File({ filename: 'logs/combined.log' }),
+              new winston.transports.File({
+                  filename: 'logs/error.log',
+                  level: 'error'
+              })
+          ];
 
-const logger = createLogger({
-    level: level(),
-    levels,
-    format,
-    transports,
-    exceptionHandlers: [
-        new winston.transports.File({ filename: 'logs/exception.log' })
-    ],
-    rejectionHandlers: [
-        new winston.transports.File({ filename: 'logs/rejections.log' })
-    ]
-});
+const logger = createLogger(
+    config.env === 'production'
+        ? { level: level(), levels, format, transports }
+        : {
+              level: level(),
+              levels,
+              format,
+              transports,
+              exceptionHandlers: [
+                  new winston.transports.File({
+                      filename: 'logs/exception.log'
+                  })
+              ],
+              rejectionHandlers: [
+                  new winston.transports.File({
+                      filename: 'logs/rejections.log'
+                  })
+              ]
+          }
+);
 
 logger.on('error', (err) => {
     console.log('Unable to log appropriately, Logger failed....', err);
