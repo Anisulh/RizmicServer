@@ -36,26 +36,19 @@ const format = winston.format.combine(
     )
 );
 
-const transports =
-    config.env === 'production'
-        ? [new winston.transports.Console()]
-        : [
-              new winston.transports.Console(),
-              new winston.transports.File({ filename: 'logs/combined.log' }),
-              new winston.transports.File({
-                  filename: 'logs/error.log',
-                  level: 'error'
-              })
-          ];
-
 const logger = createLogger(
     config.env === 'production'
-        ? { level: level(), levels, format, transports }
+        ? {
+              level: level(),
+              levels,
+              format,
+              transports: [new winston.transports.Console()]
+          }
         : {
               level: level(),
               levels,
               format,
-              transports,
+              transports: [new winston.transports.Console()],
               exceptionHandlers: [
                   new winston.transports.File({
                       filename: 'logs/exception.log'
