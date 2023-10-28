@@ -4,7 +4,7 @@
     "description": "Clothing server",
     "main": "src/index.ts",
     "scripts": {
-        "start": "env-cmd -f ./src/config/dev.env ts-node prod/build/src/index.js",
+        "start": "npm run build && env-cmd -f ./src/config/dev.env ts-node prod/build/src/index.js",
         "start:prod": "npm run build && node build/src/index.js",
         "start:nodemon": "./node_modules/nodemon/bin/nodemon.js",
         "build": "rm -rf build/ && tsc",
