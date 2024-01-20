@@ -6,3 +6,7 @@ logs
 coverage
 .vscode/settings.json
 /target
+
+
+terraform*
+main.tf
