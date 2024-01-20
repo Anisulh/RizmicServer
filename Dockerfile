@@ -1,23 +1,39 @@
-# Define the base image
-FROM node:16-alpine
+# Step 1: Choose a base image
+FROM node:16-alpine as builder
 
-# Set working directory in the Docker image
-WORKDIR /app
+# Set the working directory in the container
+WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json to Docker image
+# Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install --unsafe-perm
+RUN npm install
 
-# Install nodemon for hot reloading
-RUN npm install -g nodemon --unsafe-perm
-
-# Copy all files to Docker image
+# Copy the rest of your app's source code from your host to your image filesystem.
 COPY . .
 
-# Expose the port server is running on
-EXPOSE 7001
+# Build the TypeScript app
+RUN npm run build
 
-# Start the server with nodemon
-CMD [ "npm", "run", "start:nodemon" ]
+# Step 2: Setup production environment
+FROM node:16-alpine
+
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm install --omit=dev
+
+# Copy built assets from the builder stage
+# Ensure this path matches the outDir specified in your tsconfig.json
+COPY --from=builder /usr/src/app/prod/build ./prod/build
+
+# Your app binds to port 3000 so you'll use the EXPOSE instruction to have it mapped by the docker daemon
+EXPOSE 8080
+
+# Define the command to run your app using CMD which defines your runtime
+# Adjust this path to point to your compiled main file
+CMD ["node", "prod/build/src/index.js"]
