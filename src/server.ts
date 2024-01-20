@@ -41,15 +41,15 @@ export const initializeServer = async (): Promise<Application> => {
     app.use(express.json());
 
     //routing
-    app.get('/api', (_: Request, res: Response) => {
-        res.send('Server is live!');
+    app.get('/', (_: Request, res: Response) => {
+        res.status(200).send('OK');
     });
     app.use('/api/user', userRouter);
     app.use('/api/clothes', clothesRouter);
     app.use('/api/generation', generationRouter);
     app.use('/api/outfits', outfitRouter);
 
-    //router errorhandling
+    //router error handling
     app.use(routeError);
     app.use(rollbar.errorHandler());
     return app;
