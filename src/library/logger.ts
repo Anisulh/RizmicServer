@@ -36,31 +36,22 @@ const format = winston.format.combine(
     )
 );
 
-const logger = createLogger(
-    config.env === 'production'
-        ? {
-              level: level(),
-              levels,
-              format,
-              transports: [new winston.transports.Console()]
-          }
-        : {
-              level: level(),
-              levels,
-              format,
-              transports: [new winston.transports.Console()],
-              exceptionHandlers: [
-                  new winston.transports.File({
-                      filename: 'logs/exception.log'
-                  })
-              ],
-              rejectionHandlers: [
-                  new winston.transports.File({
-                      filename: 'logs/rejections.log'
-                  })
-              ]
-          }
-);
+const logger = createLogger({
+    level: level(),
+    levels,
+    format,
+    transports: [new winston.transports.Console()],
+    exceptionHandlers: [
+        new winston.transports.File({
+            filename: 'logs/exception.log'
+        })
+    ],
+    rejectionHandlers: [
+        new winston.transports.File({
+            filename: 'logs/rejections.log'
+        })
+    ]
+});
 
 logger.on('error', (err) => {
     console.log('Unable to log appropriately, Logger failed....', err);
