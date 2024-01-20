@@ -10,3 +10,4 @@ coverage
 
 terraform*
 main.tf
+.terraform.lock.hcl
