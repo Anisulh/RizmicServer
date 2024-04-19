@@ -4,7 +4,6 @@ import httpLogger from './middleware/httpLogger';
 import routeError from './middleware/routeError';
 import cors from 'cors';
 import helmet from 'helmet';
-import './process';
 import rateLimiterMiddleware from './middleware/rateLimiter';
 import clothesRouter from './components/clothes/route';
 import generationRouter from './components/fitGeneration/route';
@@ -13,6 +12,8 @@ import Rollbar from 'rollbar';
 import cookieParser from 'cookie-parser';
 import config from './config/config';
 import dbConnection from './config/dbConnection';
+import './process';
+
 
 export const rollbar = new Rollbar({
     accessToken: config.rollBarAccessToken,
@@ -41,7 +42,7 @@ export const initializeServer = async (): Promise<Application> => {
     app.use(express.json());
 
     //routing
-    app.get('/', (_: Request, res: Response) => {
+    app.get('/api', (_: Request, res: Response) => {
         res.status(200).send('OK');
     });
     app.use('/api/user', userRouter);
