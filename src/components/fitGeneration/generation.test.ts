@@ -3,8 +3,9 @@ import bcrypt from 'bcrypt';
 import { AnyObject, Types } from 'mongoose';
 import { generateToken } from '../users/services/jwt';
 import request from 'supertest';
-import app from '../../server';
+import { initializeServer } from '../../server';
 import Clothes from '../clothes/models';
+import { Application } from 'express';
 
 let token: string | undefined;
 let userID: Types.ObjectId;
@@ -104,7 +105,7 @@ const existingLowerBodyClothes = [
         layerable: true
     }
 ];
-
+const app = initializeServer();
 beforeAll(async () => {
     await Clothes.deleteMany();
     const newUser = { ...existingUser };

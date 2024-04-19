@@ -4,8 +4,10 @@
     "description": "Clothing server",
     "main": "src/index.ts",
     "scripts": {
-        "start": "env-cmd -f ./src/config/dev.env node build/src/index.js",
-        "build": "rm -rf build/ && tsc",
+        "start": "npm run build && env-cmd -f ./src/config/dev.env ts-node prod/build/src/index.js",
+        "start:prod": "npm run build && node prod/build/src/index.js",
+        "start:nodemon": "./node_modules/nodemon/bin/nodemon.js",
+        "build": "rm -rf prod/build/ && tsc",
         "lint": "eslint --ext .ts .",
         "test-local": "env-cmd -f ./src/config/test.env jest --watchAll --detectOpenHandles",
         "test": "jest --watchAll --detectOpenHandles"
@@ -60,6 +62,7 @@
         "eslint-plugin-prettier": "^4.2.1",
         "eslint-plugin-security": "^1.6.0",
         "jest": "^29.3.1",
+        "nodemon": "^3.0.1",
         "supertest": "^6.3.3",
         "ts-jest": "^29.0.5",
         "ts-node": "^10.9.1",

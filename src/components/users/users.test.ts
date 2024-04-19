@@ -1,9 +1,10 @@
 import request from 'supertest';
-import app from '../../server';
+import { initializeServer } from '../../server';
 import User, { ResetToken } from './model';
 import bcrypt from 'bcrypt';
 import { redis } from '../../library/limiterInstances';
 import { generateToken } from './services/jwt';
+import { Application } from 'express';
 
 const existingUser = {
     firstName: 'Thomas',
@@ -55,7 +56,7 @@ const invalidConfirmPasswordData = {
     newPassword: '31231aAA',
     confirmPassword: '3123aAA'
 };
-
+const app = initializeServer();
 let token: string | undefined;
 beforeEach(async () => {
     await redis.flushall('ASYNC');
@@ -79,7 +80,7 @@ describe('User registration', () => {
 
         expect(response.body).toMatchObject({
             firstName: expect.any(String),
-            lastName: expect.any(String),
+            lastName: expect.any(String)
         });
         expect(response.headers['set-cookie']).toBeDefined();
         expect(response.headers['set-cookie'][0]).toMatch(/token=/);
@@ -99,7 +100,7 @@ describe('User login', () => {
             .expect(200);
         expect(response.body).toMatchObject({
             firstName: expect.any(String),
-            lastName: expect.any(String),
+            lastName: expect.any(String)
         });
         expect(response.headers['set-cookie']).toBeDefined();
         expect(response.headers['set-cookie'][0]).toMatch(/token=/);
