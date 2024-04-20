@@ -4,10 +4,10 @@
     "description": "Clothing server",
     "main": "src/index.ts",
     "scripts": {
-        "start": "npm run build && env-cmd -f ./src/config/dev.env ts-node prod/build/src/index.js",
-        "start:prod": "node prod/build/src/index.js",
+        "start": "npm run build && env-cmd -f ./src/config/dev.env ts-node build/src/index.js",
+        "start:prod": "node build/src/index.js",
         "start:nodemon": "./node_modules/nodemon/bin/nodemon.js",
-        "build": "rm -rf prod/build/ && tsc",
+        "build": "rm -rf build/ && tsc",
         "lint": "eslint --ext .ts .",
         "test-local": "env-cmd -f ./src/config/test.env jest --watchAll --detectOpenHandles",
         "test": "jest --watchAll --detectOpenHandles"
