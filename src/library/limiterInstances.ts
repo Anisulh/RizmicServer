@@ -2,20 +2,9 @@ import { Redis } from 'ioredis';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import config from '../config/config';
 
-const redisOptions =
-    config.env === 'production'
-        ? {
-              host: config.redis.host,
-              port: Number(config.redis.port),
-              tls: {},
-              showFriendlyErrorStack: true
-          }
-        : {
-              host: config.redis.host,
-              port: Number(config.redis.port),
-              showFriendlyErrorStack: true
-          };
-export const redis = new Redis(redisOptions);
+export const redis = new Redis(`${config.redis.host}:${config.redis.port}`, {
+    showFriendlyErrorStack: true
+});
 
 export const rateLimiter = new RateLimiterRedis({
     storeClient: redis,
