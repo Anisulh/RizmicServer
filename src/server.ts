@@ -1,3 +1,4 @@
+import config from './config/config';
 import express, { Application, Request, Response } from 'express';
 import userRouter from './components/users/route';
 import httpLogger from './middleware/httpLogger';
@@ -10,7 +11,6 @@ import generationRouter from './components/fitGeneration/route';
 import outfitRouter from './components/outfits/route';
 import Rollbar from 'rollbar';
 import cookieParser from 'cookie-parser';
-import config from './config/config';
 import dbConnection from './config/dbConnection';
 import './process';
 
