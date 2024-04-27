@@ -27,7 +27,7 @@ export const createOutfit = async (req: Request, res: Response) => {
     };
     if (imageUpload) {
         outfitData['cloudinaryID'] = imageUpload.public_id;
-        outfitData['coverImg'] = imageUpload.secure_url;
+        outfitData['image'] = imageUpload.secure_url;
     }
     const newOutfit = await Outfits.create(outfitData);
 
@@ -45,6 +45,7 @@ export const listFavoriteOutfits = async (req: Request, res: Response) => {
 
 export const favoriteOutfit = async (req: Request, res: Response) => {
     const outfitID = req.params.outfitID;
+
     const outfit = await Outfits.findByIdAndUpdate(outfitID, {
         favorited: true
     }).lean();
@@ -57,8 +58,10 @@ export const favoriteOutfit = async (req: Request, res: Response) => {
     }
     res.status(200).json({ outfit });
 };
+
 export const unfavoriteOutfit = async (req: Request, res: Response) => {
     const outfitID = req.params.outfitID;
+
     const outfit = await Outfits.findByIdAndUpdate(outfitID, {
         favorited: false
     }).lean();
@@ -71,72 +74,70 @@ export const unfavoriteOutfit = async (req: Request, res: Response) => {
     }
     res.status(200).json({ outfit });
 };
+
 export const updateOutfit = async (req: Request, res: Response) => {
     const { _id } = req.user;
     const outfitID = req.params.outfitID;
-    const selectedOutfit = await Outfits.findById(outfitID);
-    let imageUpload;
-    if (selectedOutfit && String(selectedOutfit?.userID) === String(_id)) {
-        if (selectedOutfit.cloudinaryID && req.file) {
-            await deleteFromCloudinary(selectedOutfit.cloudinaryID);
-            const buffer = req.file.buffer.toString('base64');
-            imageUpload = await uploadToCloudinary(buffer);
-        } else if (req.file) {
-            const buffer = req.file.buffer.toString('base64');
-            imageUpload = await uploadToCloudinary(buffer);
-        }
-        let updateData = { ...req.body };
-        if (imageUpload) {
-            updateData['coverImg'] = imageUpload.secure_url;
-            updateData['cloudinaryID'] = imageUpload.public_id;
-        }
-        const updatedOutfit = await Outfits.findByIdAndUpdate(
-            outfitID,
-            updateData,
-            { new: true }
-        ).lean();
 
-        res.status(200).json(updatedOutfit);
-    } else {
+    const selectedOutfit = await Outfits.findOne({
+        _id: outfitID,
+        userID: _id
+    });
+
+    if (!selectedOutfit) {
         const appError = new AppError({
-            name: 'Unauthorized update',
-            message: 'User does not match the associated user of the clothes',
-            httpCode: HttpCode.UNAUTHORIZED
+            name: 'No outfit found',
+            message:
+                'Unable to find outfit matching the provided id or belonging to user',
+            httpCode: HttpCode.NOT_FOUND
         });
-        errorHandler.handleError(appError, req, res);
+        return errorHandler.handleError(appError, req, res);
     }
+
+    let imageUpload;
+
+    if (selectedOutfit.cloudinaryID && req.file) {
+        await deleteFromCloudinary(selectedOutfit.cloudinaryID);
+        const buffer = req.file.buffer.toString('base64');
+        imageUpload = await uploadToCloudinary(buffer);
+    } else if (req.file) {
+        const buffer = req.file.buffer.toString('base64');
+        imageUpload = await uploadToCloudinary(buffer);
+    }
+    let updateData = { ...req.body };
+    if (imageUpload) {
+        updateData['image'] = imageUpload.secure_url;
+        updateData['cloudinaryID'] = imageUpload.public_id;
+    }
+    const updatedOutfit = await Outfits.findByIdAndUpdate(
+        outfitID,
+        updateData,
+        { new: true }
+    ).lean();
+
+    res.status(200).json(updatedOutfit);
 };
+
 export const deleteOutfit = async (req: Request, res: Response) => {
     const { _id } = req.user;
     const outfitID = req.params.outfitID;
-    if (!outfitID) {
-        const appError = new AppError({
-            name: 'Param Requirements Not Met',
-            message: 'outfitID was not sent to server',
-            httpCode: HttpCode.BAD_REQUEST
-        });
-        errorHandler.handleError(appError, req, res);
-    }
-    const selectedOutfit = await Outfits.findById(outfitID);
+
+    const selectedOutfit = await Outfits.findOne({
+        _id: outfitID,
+        userID: _id
+    });
     if (!selectedOutfit) {
         const appError = new AppError({
-            name: 'Document Not Found',
-            message: 'Unable to find selection',
+            name: 'No outfit found',
+            message:
+                'Unable to find outfit matching the provided id or belonging to user',
             httpCode: HttpCode.NOT_FOUND
         });
-        errorHandler.handleError(appError, req, res);
-    } else if (String(selectedOutfit.userID) === String(_id)) {
-        if (selectedOutfit.cloudinaryID) {
-            await deleteFromCloudinary(selectedOutfit.cloudinaryID);
-        }
-        await selectedOutfit.delete();
-        res.status(200).json({ id: outfitID });
-    } else {
-        const appError = new AppError({
-            name: 'Unauthorized update',
-            message: 'User does not match the associated user of the clothes',
-            httpCode: HttpCode.UNAUTHORIZED
-        });
-        errorHandler.handleError(appError, req, res);
+        return errorHandler.handleError(appError, req, res);
     }
+    if (selectedOutfit.cloudinaryID) {
+        await deleteFromCloudinary(selectedOutfit.cloudinaryID);
+    }
+    await selectedOutfit.delete();
+    res.status(200).json({ id: outfitID });
 };
