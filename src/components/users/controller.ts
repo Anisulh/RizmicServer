@@ -250,9 +250,9 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
 
 export const resetPassword = async (req: Request, res: Response) => {
     const { token } = req.params;
-    const { email, password } = req.body;
+    const { password } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ resetPasswordToken: token });
 
     if (!existingUser) {
         const appError = new AppError({
