@@ -32,5 +32,5 @@ const outfitSchema = new Schema(
     { timestamps: true }
 );
 
-const Outifts = mongoose.model('Outifts', outfitSchema);
-export default Outifts;
+const Outfits = mongoose.model('Outfits', outfitSchema);
+export default Outfits;
