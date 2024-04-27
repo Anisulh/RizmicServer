@@ -1,9 +1,9 @@
 import User from '../users/model';
 import bcrypt from 'bcrypt';
 import { AnyObject, Types } from 'mongoose';
-import { generateToken } from '../users/services/jwt';
+import { generateToken } from '../users/utils/jwt';
 import request from 'supertest';
-import { initializeServer } from '../../server';
+import { startApp } from '../../app';
 import Clothes from './models';
 import { Application } from 'express';
 
@@ -51,7 +51,7 @@ let token: string | undefined;
 let createdClothesId: Types.ObjectId;
 let createdClothesIdWithImage: Types.ObjectId;
 let userID: Types.ObjectId;
-const app = initializeServer();
+const app = startApp();
 beforeAll(async () => {
     await Clothes.deleteMany();
     const newUser = { ...existingUser };
