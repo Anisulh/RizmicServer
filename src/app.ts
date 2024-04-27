@@ -11,8 +11,7 @@ import generationRouter from './components/fitGeneration/route';
 import outfitRouter from './components/outfits/route';
 import Rollbar from 'rollbar';
 import cookieParser from 'cookie-parser';
-import dbConnection from './config/dbConnection';
-import './process';
+import handleError from './middleware/handleError';
 
 
 export const rollbar = new Rollbar({
@@ -20,9 +19,7 @@ export const rollbar = new Rollbar({
     captureUncaught: true,
     captureUnhandledRejections: true
 });
-export const initializeServer = async (): Promise<Application> => {
-    await dbConnection();
-
+export const startApp = async (): Promise<Application> => {
     const app: Application = express();
 
     app.use(httpLogger);
@@ -49,6 +46,8 @@ export const initializeServer = async (): Promise<Application> => {
     app.use('/api/clothes', clothesRouter);
     app.use('/api/generation', generationRouter);
     app.use('/api/outfits', outfitRouter);
+
+    app.use(handleError);
 
     //router error handling
     app.use(routeError);
