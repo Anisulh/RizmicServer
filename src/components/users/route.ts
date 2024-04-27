@@ -16,8 +16,10 @@ import {
 } from './controller';
 import {
     changePasswordSchema,
+    forgotPasswordSchema,
     loginSchema,
     registerSchema,
+    resetPasswordSchema,
     updateProfileSchema
 } from './validationSchema';
 import upload from '../../config/multer.config';
@@ -33,8 +35,16 @@ userRouter.post(
 );
 userRouter.post('/login', reqValidation(loginSchema), asyncHandler(loginUser));
 userRouter.post('/logout', authorization, asyncHandler(logoutUser));
-userRouter.post('/forgot-password', asyncHandler(forgotUserPassword));
-userRouter.post('/password-reset', asyncHandler(resetPassword));
+userRouter.post(
+    '/forgot-password',
+    reqValidation(forgotPasswordSchema),
+    asyncHandler(forgotUserPassword)
+);
+userRouter.post(
+    '/password-reset',
+    reqValidation(resetPasswordSchema),
+    asyncHandler(resetPassword)
+);
 userRouter.post(
     '/update-profile',
     authorization,
