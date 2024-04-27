@@ -11,6 +11,7 @@ import {
 import { createClothesSchema, updateClothesSchema } from './validationSchema';
 import upload from '../../config/multer.config';
 import asyncHandler from 'express-async-handler';
+import convertFavoritedToBool from '../../middleware/convertFavoritedToBool';
 
 const clothesRouter = express.Router();
 
@@ -20,6 +21,7 @@ clothesRouter
         '/',
         authorization,
         upload.single('image'),
+        convertFavoritedToBool,
         reqValidation(createClothesSchema),
         asyncHandler(createClothes)
     )
@@ -27,6 +29,7 @@ clothesRouter
     .put(
         '/:clothesId',
         authorization,
+        convertFavoritedToBool,
         upload.single('image'),
         reqValidation(updateClothesSchema),
         asyncHandler(updateClothes)
