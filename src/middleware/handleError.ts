@@ -22,16 +22,16 @@ const handleError = (
     ) {
         const appError = new AppError({
             name: 'JSON WEB TOKEN ERROR',
-            description: error.message,
+            message: error.message,
             httpCode: HttpCode.UNAUTHORIZED
         });
         return errorHandler.handleError(appError, req, res);
-    }else if (error instanceof MongoServerError && error.code === 11000) {
+    } else if (error instanceof MongoServerError && error.code === 11000) {
         logger.error(`MongoDB E11000 Error: ${error}`);
         const appError = new AppError({
             name: 'MongoDB Duplicate Key Error',
             httpCode: HttpCode.CONFLICT,
-            description:
+            message:
                 'Duplicate key error: A resource with that value already exists.'
         });
         errorHandler.handleError(appError, req, res);
@@ -41,7 +41,7 @@ const handleError = (
         const appError = new AppError({
             name: 'JOI validation Error',
             httpCode: HttpCode.UNPROCESSABLE_ENTITY,
-            description: 'One or more fields submitted was not valid'
+            message: 'One or more fields submitted was not valid'
         });
         errorHandler.handleError(appError, req, res);
     } else {

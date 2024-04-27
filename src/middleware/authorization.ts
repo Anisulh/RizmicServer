@@ -14,7 +14,7 @@ export const authorization = async (
         if (!token) {
             const appError = new AppError({
                 name: 'Missing JWT',
-                description: 'No JWT found in cookie',
+                message: 'No JWT found in cookie',
                 httpCode: HttpCode.UNAUTHORIZED
             });
             return errorHandler.handleError(appError, req, res);
@@ -27,7 +27,7 @@ export const authorization = async (
         if (decodedToken.iss !== 'rizmic_fits') {
             const appError = new AppError({
                 name: 'Missing JWT issuer',
-                description: 'Issuer does not match',
+                message: 'Issuer does not match',
                 httpCode: HttpCode.UNAUTHORIZED
             });
             return errorHandler.handleError(appError, req, res);
@@ -39,7 +39,7 @@ export const authorization = async (
         } else {
             const appError = new AppError({
                 name: 'Missing element in JWT',
-                description: 'No _id field in JWT',
+                message: 'No _id field in JWT',
                 httpCode: HttpCode.UNAUTHORIZED
             });
             return errorHandler.handleError(appError, req, res);

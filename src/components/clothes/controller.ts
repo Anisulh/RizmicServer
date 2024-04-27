@@ -39,7 +39,7 @@ export const getSpecificClothes = async (req: Request, res: Response) => {
     if (!requestedClothes) {
         const appError = new AppError({
             name: 'No clothes found',
-            description:
+            message:
                 'Unable to find clothes matching the provided id or belonging to user',
             httpCode: HttpCode.NOT_FOUND
         });
@@ -58,7 +58,7 @@ export const updateClothes = async (req: Request, res: Response) => {
     if (!selectedClothes) {
         const appError = new AppError({
             name: 'Unauthorized update',
-            description:
+            message:
                 'User does not match the associated user of the clothes',
             httpCode: HttpCode.UNAUTHORIZED
         });
@@ -98,7 +98,7 @@ export const deleteClothes = async (req: Request, res: Response) => {
     if (!selectedClothes) {
         const appError = new AppError({
             name: 'Unauthorized update',
-            description:
+            message:
                 'User does not match the associated user of the clothes',
             httpCode: HttpCode.UNAUTHORIZED
         });

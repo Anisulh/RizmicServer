@@ -63,7 +63,7 @@ export const googleSignIn = async (req: Request, res: Response) => {
             } else {
                 const appError = new AppError({
                     name: 'Google OAuth Error',
-                    description: 'Unable to register with google',
+                    message: 'Unable to register with google',
                     httpCode: HttpCode.BAD_REQUEST
                 });
                 errorHandler.handleError(appError, req, res);
@@ -78,7 +78,7 @@ export const googleSignIn = async (req: Request, res: Response) => {
     } else {
         const appError = new AppError({
             httpCode: HttpCode.BAD_REQUEST,
-            description: 'No token found'
+            message: 'No token found'
         });
         return errorHandler.handleError(appError, req, res);
     }
@@ -91,7 +91,7 @@ export const registerUser = async (req: Request, res: Response) => {
     if (existingUser) {
         const appError = new AppError({
             name: 'Existing User Error',
-            description: 'Unable to register, user already exists',
+            message: 'Unable to register, user already exists',
             httpCode: HttpCode.BAD_REQUEST
         });
         return errorHandler.handleError(appError, req, res);
@@ -158,7 +158,7 @@ export const loginUser = async (req: Request, res: Response) => {
         return errorHandler.handleError(
             new AppError({
                 httpCode: HttpCode.BAD_REQUEST,
-                description: 'User does not exist'
+                message: 'User does not exist'
             }),
             req,
             res
@@ -177,7 +177,7 @@ export const loginUser = async (req: Request, res: Response) => {
             return errorHandler.handleError(
                 new AppError({
                     httpCode: HttpCode.BAD_REQUEST,
-                    description: 'Invalid Credentials'
+                    message: 'Invalid Credentials'
                 }),
                 req,
                 res
@@ -232,7 +232,7 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
     if (!existingUser) {
         const appError = new AppError({
             httpCode: HttpCode.BAD_REQUEST,
-            description: 'Error finding user'
+            message: 'Error finding user'
         });
         return errorHandler.handleError(appError, req, res);
     }
@@ -248,7 +248,7 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
     if (!success) {
         const appError = new AppError({
             httpCode: HttpCode.BAD_REQUEST,
-            description: 'Error sending email'
+            message: 'Error sending email'
         });
         return errorHandler.handleError(appError, req, res);
     }
@@ -264,7 +264,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     if (!existingUser) {
         const appError = new AppError({
             httpCode: HttpCode.BAD_REQUEST,
-            description: 'User does not exist'
+            message: 'User does not exist'
         });
         return errorHandler.handleError(appError, req, res);
     }
@@ -276,7 +276,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     } else {
         const appError = new AppError({
             httpCode: HttpCode.BAD_REQUEST,
-            description: result.message
+            message: result.message
         });
         errorHandler.handleError(appError, req, res);
     }
@@ -303,7 +303,7 @@ export const getUser = async (req: Request, res: Response) => {
         .lean();
     if (!userInstance) {
         const appError = new AppError({
-            description: 'No user found',
+            message: 'No user found',
             httpCode: HttpCode.NOT_FOUND
         });
         return errorHandler.handleError(appError, req, res);
@@ -319,7 +319,7 @@ export const changePassword = async (req: Request, res: Response) => {
     const userInstance = await User.findById(_id);
     if (!userInstance) {
         const appError = new AppError({
-            description: 'No user found',
+            message: 'No user found',
             httpCode: HttpCode.NOT_FOUND
         });
         return errorHandler.handleError(appError, req, res);
@@ -335,7 +335,7 @@ export const changePassword = async (req: Request, res: Response) => {
         );
         if (!isValid) {
             const appError = new AppError({
-                description: 'Password does not match current password',
+                message: 'Password does not match current password',
                 httpCode: HttpCode.BAD_REQUEST
             });
             return errorHandler.handleError(appError, req, res);
@@ -353,8 +353,7 @@ export const updateProfileImage = async (req: Request, res: Response) => {
     if (!user) {
         const appError = new AppError({
             name: 'Unauthorized update',
-            description:
-                'User does not match the associated user of the clothes',
+            message: 'User does not match the associated user of the clothes',
             httpCode: HttpCode.UNAUTHORIZED
         });
         return errorHandler.handleError(appError, req, res);
@@ -362,7 +361,7 @@ export const updateProfileImage = async (req: Request, res: Response) => {
     if (!req.file) {
         const appError = new AppError({
             name: 'No image attached',
-            description: 'There was no image attached in request',
+            message: 'There was no image attached in request',
             httpCode: HttpCode.BAD_REQUEST
         });
         return errorHandler.handleError(appError, req, res);
