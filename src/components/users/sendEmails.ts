@@ -33,19 +33,11 @@ const sendEmail = async (
         };
         transporter.sendMail(options(), (error) => {
             if (error) {
-                sentMail = false;
-                const criticalError = new Error(
-                    `Error - could not send email due to: ${error}`
-                );
-                errorHandler.handleError(criticalError);
-                return;
+               throw error
             }
         });
-        sentMail = true;
-        return sentMail;
     } catch (error) {
-        const criticalError = new Error('Critical Error - Error sending email');
-        errorHandler.handleError(criticalError);
+        throw error
     }
 };
 
