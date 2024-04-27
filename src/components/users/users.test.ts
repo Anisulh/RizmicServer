@@ -1,10 +1,10 @@
 import request from 'supertest';
-import { initializeServer } from '../../server';
-import User, { ResetToken } from './model';
+import { startApp } from '../../app';
+import User from './model';
 import bcrypt from 'bcrypt';
 import { redis } from '../../library/limiterInstances';
-import { generateToken } from './services/jwt';
-import { Application } from 'express';
+import { generateToken } from './utils/jwt';
+import dbConnection from '../../config/dbConnection';
 
 const existingUser = {
     firstName: 'Thomas',
@@ -56,17 +56,23 @@ const invalidConfirmPasswordData = {
     newPassword: '31231aAA',
     confirmPassword: '3123aAA'
 };
-const app = initializeServer();
 let token: string | undefined;
+let app: any;
+
+const startTest = async () => {
+    await dbConnection();
+    app = await startApp(); // Ensure startApp is correctly setting up the Express app
+    return app;
+};
+
+beforeAll(async () => {
+    await startTest();
+});
 beforeEach(async () => {
     await redis.flushall('ASYNC');
     await User.deleteMany();
-    await ResetToken.deleteMany();
-    const newUser = { ...existingUser };
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(existingUser.password, salt);
-    newUser.password = hashedPassword;
-    const createdUser = await User.create(newUser);
+    const newUser = new User(existingUser);
+    const createdUser = await newUser.save();
     const userID = createdUser._id;
     token = generateToken(userID) as string;
 });
@@ -93,7 +99,7 @@ describe('User registration', () => {
     });
 });
 describe('User login', () => {
-    it('Should login an existing user with valid credentials and return accessToken', async () => {
+    it('Should return 200 if existing user with valid credentials and return accessToken', async () => {
         const response = await request(app)
             .post('/api/user/login')
             .send(existingUserLogin)
@@ -128,13 +134,13 @@ describe('User login', () => {
 describe('Forgot password', () => {
     it('Should return 400 if email does not exist while trying to reset password', async () => {
         return request(app)
-            .post('/api/user/forgotpassword')
+            .post('/api/user/forgot-password')
             .send({ email: nonExistingUserLogin.email })
             .expect(400);
     });
     it('Should return 200 if email was sent to reset password', async () => {
         await request(app)
-            .post('/api/user/forgotpassword')
+            .post('/api/user/forgot-password')
             .send({ email: existingUser.email })
             .expect(200);
     });
@@ -144,7 +150,7 @@ describe('Update user profile', () => {
     it('Should update the profile and return the updated instance', async () => {
         const { firstName, lastName } = updateProfileData;
         const response = await request(app)
-            .post('/api/user/updateProfile')
+            .post('/api/user/update-profile')
             .set('Cookie', `token=${token}`)
             .send(updateProfileData)
             .expect(200);
@@ -159,7 +165,7 @@ describe('Update user profile', () => {
     it('Should update the profile with partial data and return the updated instance', async () => {
         const { firstName } = partialUpdateProfileData;
         const response = await request(app)
-            .post('/api/user/updateProfile')
+            .post('/api/user/update-profile')
             .set('Cookie', `token=${token}`)
             .send(partialUpdateProfileData)
             .expect(200);
@@ -175,21 +181,21 @@ describe('Update user profile', () => {
 describe('Changing users password', () => {
     it('Should change users password', async () => {
         return await request(app)
-            .post('/api/user/changePassword')
+            .post('/api/user/change-password')
             .set('Cookie', `token=${token}`)
             .send(validPasswordData)
             .expect(200);
     });
     it('Should not change password if current password doesnt match', async () => {
         return await request(app)
-            .post('/api/user/changePassword')
+            .post('/api/user/change-password')
             .set('Cookie', `token=${token}`)
             .send(invalidCurrentPasswordData)
             .expect(400);
     });
     it('Should not change password if the new password does not match confirm password', async () => {
         return await request(app)
-            .post('/api/user/changePassword')
+            .post('/api/user/change-password')
             .set('Cookie', `token=${token}`)
             .send(invalidConfirmPasswordData)
             .expect(400);
@@ -199,7 +205,7 @@ describe('Changing users password', () => {
 describe('Update profile image', () => {
     it('Should return 200 and user instance along with image link', async () => {
         const response = await request(app)
-            .post('/api/user/updateProfileImage')
+            .post('/api/user/update-profile-image')
             .set('Cookie', `token=${token}`)
             .set('Content-Type', 'multipart/form-data')
             .attach('image', `${__dirname}/assets/Useravatar.png`)
