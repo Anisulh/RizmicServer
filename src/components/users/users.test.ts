@@ -1,7 +1,6 @@
 import request from 'supertest';
 import { startApp } from '../../app';
 import User from './model';
-import bcrypt from 'bcrypt';
 import { redis } from '../../library/limiterInstances';
 import { generateToken } from './utils/jwt';
 import dbConnection from '../../config/dbConnection';
@@ -10,7 +9,9 @@ const existingUser = {
     firstName: 'Thomas',
     lastName: 'Hatek',
     email: 'thomashatek@gmail.com',
-    password: '1234567aA'
+    password: '1234567aA',
+    confirmPassword: '1234567aA'
+
 };
 const existingUserLogin = {
     email: 'thomashatek@gmail.com',
@@ -186,19 +187,19 @@ describe('Changing users password', () => {
             .send(validPasswordData)
             .expect(200);
     });
-    it('Should not change password if current password doesnt match', async () => {
+    it('Should return 400 if current password does not match', async () => {
         return await request(app)
             .post('/api/user/change-password')
             .set('Cookie', `token=${token}`)
             .send(invalidCurrentPasswordData)
             .expect(400);
     });
-    it('Should not change password if the new password does not match confirm password', async () => {
+    it('Should return 422 if the new password does not match confirm password', async () => {
         return await request(app)
             .post('/api/user/change-password')
             .set('Cookie', `token=${token}`)
             .send(invalidConfirmPasswordData)
-            .expect(400);
+            .expect(422);
     });
 });
 
