@@ -1,4 +1,4 @@
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
