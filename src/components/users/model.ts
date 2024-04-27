@@ -1,63 +1,110 @@
 import mongoose, { Types } from 'mongoose';
+import bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 const { Schema } = mongoose;
 
 const userSchema = new Schema(
     {
-        googleID: {
-            required: false,
-            type: String
-        },
-        cloudinaryID: {
-            required: false,
-            type: String
-        },
-        firstName: {
-            required: true,
-            type: String
-        },
-        lastName: {
-            required: true,
-            type: String
-        },
+        googleID: { type: String, required: false },
+        cloudinaryID: { type: String, required: false },
+        firstName: { type: String, required: true },
+        lastName: { type: String, required: true },
         email: {
+            type: String,
             required: true,
-            type: String
+            unique: true,
+            match: [
+                /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{+\w+)*$/,
+                'Please fill a valid email address'
+            ]
         },
         password: {
-            required: false,
-            type: String
+            type: String,
+            required: false
         },
-        profilePicture: {
-            required: false,
-            type: String
-        },
+        profilePicture: { type: String, required: false },
         phoneNumber: {
+            type: String,
             required: false,
-            type: String
+            match: [
+                /^\+?(\d{1,3})?[-. ]?\(?\d+\)?[-. ]?\d+[-. ]?\d+$/,
+                'Please fill a valid phone number'
+            ]
+        },
+        resetPasswordToken: {
+            type: String,
+            required: false
+        },
+        resetPasswordExpires: {
+            type: Number,
+            required: false
         }
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+        methods: {
+            createPasswordResetToken() {
+                // Generate a random token
+                const resetToken = crypto.randomBytes(20).toString('hex');
+
+                // Hash token (private modification before saving it to the database)
+                this.resetPasswordToken = crypto
+                    .createHash('sha256')
+                    .update(resetToken)
+                    .digest('hex');
+
+                // Set expire time (1 hour from now)
+                this.resetPasswordExpires = Date.now() + 3600000; // 1 hour in milliseconds
+
+                return resetToken; // This will be sent to the user's email
+            },
+            async resetPassword(submittedToken: string, newPassword: string) {
+                const hashedToken = crypto
+                    .createHash('sha256')
+                    .update(submittedToken)
+                    .digest('hex');
+
+                // Check if the hashed token and the expiry are still valid
+                if (
+                    this.resetPasswordToken === hashedToken &&
+                    this.resetPasswordExpires &&
+                    this.resetPasswordExpires > Date.now()
+                ) {
+                    const salt = await bcrypt.genSalt(10);
+                    this.password = await bcrypt.hash(newPassword, salt);
+
+                    // Clear the reset token fields
+                    this.resetPasswordToken = undefined;
+                    this.resetPasswordExpires = undefined;
+
+                    // Save the updated user
+                    await this.save();
+                    return {
+                        success: true,
+                        message: 'Password has been reset successfully.'
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message:
+                            'Password reset token is invalid or has expired.'
+                    };
+                }
+            }
+        }
+    }
 );
 
-const resetPasswordSchema = new Schema({
-    userID: {
-        required: true,
-        type: Types.ObjectId,
-        ref: `User`
-    },
-    token: {
-        required: true,
-        type: String
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-        expires: 1800
+// Middleware to hash password before saving it to the database
+userSchema.pre('save', async function (next) {
+    if (this.isModified('password') && this.password) {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
     }
+    next();
 });
 
-export const ResetToken = mongoose.model('ResetToken', resetPasswordSchema);
-
 const User = mongoose.model('User', userSchema);
+
 export default User;
