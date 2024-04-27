@@ -9,7 +9,6 @@ export interface RateLimiterRes {
     isFirstInDuration: boolean;
 }
 
-
 export const redis = new Redis(`${config.redis.host}:${config.redis.port}`, {
     showFriendlyErrorStack: true
 });
