@@ -1,49 +1,83 @@
 import { z } from 'zod';
 
-const clothingCategories = z.enum(
-    [
-        'tshirt',
-        'jacket',
-        'sweater',
-        'top',
-        'shirt',
-        'dress',
-        'pants',
-        'skirt',
-        'shorts'
-    ],
-    {
-        errorMap: () => ({ message: 'Invalid clothing category' })
-    }
-);
-
-const bodyLocations = z.enum(['head', 'upperBody', 'lowerBody', 'feet'], {
-    errorMap: () => ({ message: 'Invalid body location' })
-});
-
 export const createClothesSchema = z.object({
-    category: clothingCategories,
-    variant: z.string().min(3).max(30, {
-        message: 'Variant must be between 3 and 30 characters'
+    name: z.string().min(1).max(100),
+    category: z.enum(
+        [
+            't-shirt',
+            'jacket',
+            'sweater',
+            'top',
+            'shirt',
+            'dress',
+            'pants',
+            'skirt',
+            'shorts',
+            'accessories'
+        ],
+        {
+            errorMap: () => ({ message: 'Invalid clothing category' })
+        }
+    ),
+    size: z.enum(['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'], {
+        errorMap: () => ({ message: 'Invalid clothing size' })
     }),
-    bodyLocation: z.array(bodyLocations).min(1, {
-        message: 'At least one body location must be provided'
+    color: z.string().min(1).max(50),
+    material: z.string().optional(),
+    brand: z.string().optional(),
+    condition: z.enum(['new', 'like new', 'good', 'fair', 'poor'], {
+        errorMap: () => ({ message: 'Invalid clothing condition' })
     }),
-    color: z.string().min(3).max(30, {
-        message: 'Color must be between 3 and 30 characters'
-    }),
-    layerable: z.boolean(),
+    purchaseDate: z.date().optional(),
+    price: z.number().optional(),
+    description: z.string().max(1000).optional(),
+    careInstructions: z.string().max(1000).optional(),
     image: z.any().optional(),
-    description: z.string().min(3).max(100).optional()
+    tags: z.array(z.string()).optional(),
+    favorited: z.boolean().default(false)
 });
+
+export type ClothesInput = z.infer<typeof createClothesSchema>;
 
 export const updateClothesSchema = z.object({
-    category: clothingCategories.optional(),
-    variant: z.string().min(3).max(30).optional(),
-    bodyLocation: z.array(bodyLocations).optional(),
-    color: z.string().min(3).max(30).optional(),
-    layerable: z.boolean().optional(),
-    image: z.any().optional(),
-    cloudinaryID: z.string().url().optional(),
-    description: z.string().min(3).max(100).optional()
+    name: z.string().min(1).max(100).optional(),
+    category: z
+        .enum(
+            [
+                't-shirt',
+                'jacket',
+                'sweater',
+                'top',
+                'shirt',
+                'dress',
+                'pants',
+                'skirt',
+                'shorts',
+                'accessories'
+            ],
+            {
+                errorMap: () => ({ message: 'Invalid clothing category' })
+            }
+        )
+        .optional(),
+    size: z
+        .enum(['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'], {
+            errorMap: () => ({ message: 'Invalid clothing size' })
+        })
+        .optional(),
+    color: z.string().min(1).max(50).optional(),
+    material: z.string().optional(),
+    brand: z.string().optional(),
+    condition: z
+        .enum(['new', 'like new', 'good', 'fair', 'poor'], {
+            errorMap: () => ({ message: 'Invalid clothing condition' })
+        })
+        .optional(),
+    purchaseDate: z.date().optional(),
+    price: z.number().optional(),
+    description: z.string().max(1000).optional(),
+    careInstructions: z.string().max(1000).optional(),
+    image: z.string().url().optional(),
+    tags: z.array(z.string()).optional(),
+    favorited: z.boolean().default(false).optional()
 });
