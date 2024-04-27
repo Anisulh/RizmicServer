@@ -1,9 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import jwt, {
-    JsonWebTokenError,
-    NotBeforeError,
-    TokenExpiredError
-} from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import User from '../components/users/model';
 import config from '../config/config';
 import { AppError, errorHandler, HttpCode } from '../library/errorHandler';
@@ -18,7 +14,7 @@ export const authorization = async (
         if (!token) {
             const appError = new AppError({
                 name: 'Missing JWT',
-                description: 'No JWT found in cookie',
+                message: 'No JWT found in cookie',
                 httpCode: HttpCode.UNAUTHORIZED
             });
             return errorHandler.handleError(appError, req, res);
@@ -31,7 +27,7 @@ export const authorization = async (
         if (decodedToken.iss !== 'rizmic_fits') {
             const appError = new AppError({
                 name: 'Missing JWT issuer',
-                description: 'Issuer does not match',
+                message: 'Issuer does not match',
                 httpCode: HttpCode.UNAUTHORIZED
             });
             return errorHandler.handleError(appError, req, res);
@@ -43,27 +39,12 @@ export const authorization = async (
         } else {
             const appError = new AppError({
                 name: 'Missing element in JWT',
-                description: 'No _id field in JWT',
+                message: 'No _id field in JWT',
                 httpCode: HttpCode.UNAUTHORIZED
             });
             return errorHandler.handleError(appError, req, res);
         }
     } catch (error) {
-        if (
-            error instanceof TokenExpiredError ||
-            error instanceof JsonWebTokenError ||
-            error instanceof NotBeforeError
-        ) {
-            const appError = new AppError({
-                name: 'JSON WEB TOKEN ERROR',
-                description: error.message,
-                httpCode: HttpCode.UNAUTHORIZED
-            });
-            return errorHandler.handleError(appError, req, res);
-        }
-        const criticalError = new Error(
-            `Critical Error occured at authorization: ${error}`
-        );
-        return errorHandler.handleError(criticalError);
+        next(error);
     }
 };

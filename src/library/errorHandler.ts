@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { exitHandler } from './exitHandler';
 import logger from './logger';
-import { rollbar } from '../server';
+import { rollbar } from '../app';
 import config from '../config/config';
 
 export enum HttpCode {
@@ -10,12 +10,14 @@ export enum HttpCode {
     BAD_REQUEST = 400,
     UNAUTHORIZED = 401,
     NOT_FOUND = 404,
+    CONFLICT = 409,
+    UNPROCESSABLE_ENTITY = 422,
     INTERNAL_SERVER_ERROR = 500
 }
 interface AppErrorArgs {
     name?: string;
     httpCode: HttpCode;
-    description: string;
+    message: string;
     isOperational?: boolean;
 }
 
@@ -25,7 +27,7 @@ export class AppError extends Error {
     public readonly isOperational: boolean = true;
 
     constructor(args: AppErrorArgs) {
-        super(args.description);
+        super(args.message);
 
         Object.setPrototypeOf(this, new.target.prototype);
 

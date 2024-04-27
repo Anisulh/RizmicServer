@@ -1,36 +1,56 @@
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 
-const { Schema } = mongoose;
-
-const outfitSchema = new Schema(
-    {
-        cloudinaryID: {
-            required: false,
-            type: String
-        },
-        userID: {
-            required: true,
-            type: Types.ObjectId,
-            ref: 'User'
-        },
-        coverImg: {
-            required: false,
-            type: String
-        },
-        name: {
-            required: false,
-            type: String,
-            default: "Outfit"
-        },
-        clothes: [{ type: Types.ObjectId, ref: 'Clothes' }],
-        favorited: {
-            required: false,
-            type: Boolean,
-            default: false
-        }
+const outfitSchema = new mongoose.Schema({
+    userID: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User'  
     },
-    { timestamps: true }
-);
+    cloudinaryID: {
+        type: String,
+        required: false
+    },
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    description: {
+        type: String,
+        required: false
+    },
+    clothes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Clothing'  // Reference to the Clothing schema
+    }],
+    occasion: {
+        type: String,
+        required: false,
+        enum: ['casual', 'formal', 'sport', 'business', 'party', 'home', 'travel', 'festival'],
+        lowercase: true
+    },
+    season: {
+        type: String,
+        required: false,
+        enum: ['spring', 'summer', 'autumn', 'winter'],
+        lowercase: true
+    },
+    image: {
+        type: String,
+        required: false
+    },
+    tags: [{
+        type: String,
+        required: false
+    }],
+    favorited: {
+        type: Boolean,
+        default: false
+    }
+}, {
+    timestamps: true  // Adds createdAt and updatedAt timestamps
+});
 
-const Outifts = mongoose.model('Outifts', outfitSchema);
-export default Outifts;
+const Outfits = mongoose.model('Outfits', outfitSchema);
+export default Outfits;

@@ -1,17 +1,19 @@
 import { createHttpTerminator } from 'http-terminator';
 import config from './config/config';
-import { injectExithandlerDependancy } from './library/exitHandler';
+import { injectExitHandlerDependency } from './library/exitHandler';
 import logger from './library/logger';
-
-import { initializeServer } from './server';
+import { startApp } from './app';
+import dbConnection from './config/dbConnection';
+import './process';
 
 const startServer = async () => {
-    const app = await initializeServer();
+    await dbConnection();
+    const app = await startApp();
     const server = app.listen(config.port, () => {
         logger.info(`Server is running on port: ${config.port}`);
     });
     const httpTerminator = createHttpTerminator({ server });
-    injectExithandlerDependancy(server, httpTerminator);
+    injectExitHandlerDependency(server, httpTerminator);
 };
 
 startServer();

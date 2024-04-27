@@ -2,6 +2,13 @@ import { Redis } from 'ioredis';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import config from '../config/config';
 
+export interface RateLimiterRes {
+    msBeforeNext: number;
+    remainingPoints: number;
+    consumedPoints: number;
+    isFirstInDuration: boolean;
+}
+
 export const redis = new Redis(`${config.redis.host}:${config.redis.port}`, {
     showFriendlyErrorStack: true
 });
@@ -18,7 +25,7 @@ export const limiterSlowBruteByIP = new RateLimiterRedis({
     keyPrefix: 'login_fail_ip_per_day',
     points: config.maxWrongAttemptsByIPperDay as number,
     duration: 60 * 60 * 24,
-    blockDuration: 60 * 60 * 24 // Block for 1 day, if 100 wrong attempts per day
+    blockDuration: 60 * 60 * 24 // Block for 1 day
 });
 
 export const limiterConsecutiveFailsByEmailAndIP = new RateLimiterRedis({

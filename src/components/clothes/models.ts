@@ -1,66 +1,82 @@
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 
-const { Schema } = mongoose;
-
-const clothesSchema = new Schema(
-    {
-        cloudinaryID: {
-            required: false,
-            type: String
-        },
-        userID: {
-            required: false,
-            type: Types.ObjectId,
-            ref: 'User'
-        },
-        bodyLocation: [
-            {
-                required: true,
-                type: String,
-                enum: ['head', 'upperBody', 'lowerBody', 'feet']
-            }
-        ],
-        category: {
-            required: true,
-            type: String,
-            enum: [
-                'tshirt',
-                'jacket',
-                'sweater',
-                'top',
-                'shirt',
-                'dress',
-                'pants',
-                'skirt',
-                'shorts'
-            ]
-        },
-        variant: {
-            required: true,
-            type: String
-        },
-        color: {
-            required: true,
-            type: String
-        },
-        layerable: {
-            required: true,
-            type: Boolean
-        },
-        image: {
-            required: false,
-            type: String
-        },
-        description: {
-            required: false,
-            type: String
-        }
+const clothingSchema = new mongoose.Schema({
+    userID: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User'  // Assuming there is a User model for referencing
     },
-    { timestamps: true }
-);
+    cloudinaryID: {
+        type: String,
+        required: false
+    },
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    category: {
+        type: String,
+        required: true,
+        enum: ['t-shirt', 'jacket', 'sweater', 'top', 'shirt', 'dress', 'pants', 'skirt', 'shorts', 'accessories']
+    },
+    size: {
+        type: String,
+        required: true,
+        enum: ['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl']
+    },
+    color: {
+        type: String,
+        required: true
+    },
+    material: {
+        type: String,
+        required: false
+    },
+    brand: {
+        type: String,
+        required: false
+    },
+    condition: {
+        type: String,
+        required: true,
+        enum: ['new', 'like new', 'good', 'fair', 'poor']
+    },
+    purchaseDate: {
+        type: Date,
+        required: false
+    },
+    price: {
+        type: Number,
+        required: false
+    },
+    description: {
+        type: String,
+        required: false
+    },
+    careInstructions: {
+        type: String,
+        required: false
+    },
+    image: {
+        type: String,
+        required: false
+    },
+    tags: [{
+        type: String,
+        required: false
+    }],
+    favorited: {
+        type: Boolean,
+        default: false
+    }
+}, {
+    timestamps: true  // Adds createdAt and updatedAt timestamps
+});
 
-const Clothes = mongoose.model('Clothes', clothesSchema);
-export default Clothes;
+const Clothing = mongoose.model('Clothing', clothingSchema);
+
+export default Clothing;
 
 
 export interface IClothingData {

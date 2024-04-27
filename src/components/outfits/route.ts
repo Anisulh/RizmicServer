@@ -9,30 +9,38 @@ import {
     unfavoriteOutfit,
     updateOutfit
 } from './controllers';
-import { createOutfitsSchema, updateOutfitsSchema } from './joiSchema';
+import { createOutfitsSchema, updateOutfitsSchema } from './validationSchema';
 import { reqValidation } from '../../middleware/reqValidation';
 import upload from '../../config/multer.config';
+import asyncHandler from 'express-async-handler';
+import convertFavoritedToBool from '../../middleware/convertFavoritedToBool';
 
 const outfitRouter = express.Router();
 
 outfitRouter
-    .get('/', authorization, listOutfits)
+    .get('/', authorization, asyncHandler(listOutfits))
     .post(
         '/',
         authorization,
-        upload.single('coverImg'),
+        convertFavoritedToBool,
+        upload.single('image'),
         reqValidation(createOutfitsSchema),
-        createOutfit
+        asyncHandler(createOutfit)
     )
     .put(
         '/:outfitID',
         authorization,
-        upload.single('coverImg'),
+        convertFavoritedToBool,
+        upload.single('image'),
         reqValidation(updateOutfitsSchema),
-        updateOutfit
+        asyncHandler(updateOutfit)
     )
-    .delete('/:outfitID', authorization, deleteOutfit)
-    .get('/favorite', authorization, listFavoriteOutfits)
-    .patch('/favorite/:outfitID', authorization, favoriteOutfit)
-    .patch('/unfavorite/:outfitID', authorization, unfavoriteOutfit);
+    .delete('/:outfitID', authorization, asyncHandler(deleteOutfit))
+    .get('/favorite', authorization, asyncHandler(listFavoriteOutfits))
+    .patch('/favorite/:outfitID', authorization, asyncHandler(favoriteOutfit))
+    .patch(
+        '/unfavorite/:outfitID',
+        authorization,
+        asyncHandler(unfavoriteOutfit)
+    );
 export default outfitRouter;

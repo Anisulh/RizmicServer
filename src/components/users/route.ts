@@ -9,42 +9,51 @@ import {
     loginUser,
     registerUser,
     forgotUserPassword,
-    resetPasswordController,
-    validateUser
+    resetPassword,
+    validateUser,
+    googleSignIn,
+    logoutUser
 } from './controller';
 import {
     changePasswordSchema,
     loginSchema,
     registerSchema,
     updateProfileSchema
-} from './joiSchema';
+} from './validationSchema';
 import upload from '../../config/multer.config';
+import asyncHandler from 'express-async-handler';
 
 const userRouter = express.Router();
 
-userRouter.post('/register', reqValidation(registerSchema), registerUser);
-userRouter.post('/login', reqValidation(loginSchema), loginUser);
-userRouter.post('/forgotpassword', forgotUserPassword);
-userRouter.post('/passwordreset', resetPasswordController);
+userRouter.post('/google-sign-in', asyncHandler(googleSignIn));
 userRouter.post(
-    '/updateProfile',
+    '/register',
+    reqValidation(registerSchema),
+    asyncHandler(registerUser)
+);
+userRouter.post('/login', reqValidation(loginSchema), asyncHandler(loginUser));
+userRouter.post('/logout', authorization, asyncHandler(logoutUser));
+userRouter.post('/forgot-password', asyncHandler(forgotUserPassword));
+userRouter.post('/password-reset', asyncHandler(resetPassword));
+userRouter.post(
+    '/update-profile',
     authorization,
     reqValidation(updateProfileSchema),
-    updateProfile
+    asyncHandler(updateProfile)
 );
-userRouter.get('/getUser', authorization, getUser);
-userRouter.get('/validate', authorization, validateUser);
+userRouter.get('/get-user', authorization, asyncHandler(getUser));
+userRouter.get('/validate', authorization, asyncHandler(validateUser));
 userRouter.post(
-    '/changePassword',
+    '/change-password',
     authorization,
     reqValidation(changePasswordSchema),
-    changePassword
+    asyncHandler(changePassword)
 );
 userRouter.post(
-    '/updateProfileImage',
+    '/update-profile-image',
     authorization,
     upload.single('image'),
-    updateProfileImage
+    asyncHandler(updateProfileImage)
 );
 
 export default userRouter;

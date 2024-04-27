@@ -7,7 +7,7 @@ let server: { listening: unknown };
 let httpTerminator: HttpTerminator;
 
 
-export const injectExithandlerDependancy = (
+export const injectExitHandlerDependency = (
     s: { listening: unknown },
     h: HttpTerminator
 ) => {
