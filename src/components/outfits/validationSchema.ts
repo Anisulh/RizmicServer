@@ -5,31 +5,49 @@ const clothesSchema = z.array(z.any()).nonempty({
 });
 
 export const createOutfitsSchema = z.object({
-    name: z
-        .string()
-        .min(3)
-        .max(50)
-        .regex(/^[a-zA-Z0-9\s'()-]*$/, {
-            message:
-                "Name can contain alphanumeric characters, spaces, and '()-"
-        })
-        .optional(),
+    name: z.string().min(1).max(100),
+    description: z.string().max(1000).optional(),
     clothes: clothesSchema,
-    coverImg: z.any().optional(),
-    favorited: z.boolean().optional()
+    occasion: z
+        .enum([
+            'casual',
+            'formal',
+            'sport',
+            'business',
+            'party',
+            'home',
+            'travel',
+            'festival'
+        ])
+        .optional(),
+    season: z.enum(['spring', 'summer', 'autumn', 'winter']).optional(),
+    image: z.string().url().optional(),
+    cloudinaryID: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    favorited: z.boolean().default(false)
 });
 
+export type OutfitsInput = z.infer<typeof createOutfitsSchema>;
+
 export const updateOutfitsSchema = z.object({
-    name: z
-        .string()
-        .min(3)
-        .max(50)
-        .regex(/^[a-zA-Z0-9\s'()-]*$/, {
-            message:
-                "Name can contain alphanumeric characters, spaces, and '()-"
-        })
+    name: z.string().min(1).max(100).optional(),
+    description: z.string().max(1000).optional(),
+    clothes: clothesSchema.optional(),
+    occasion: z
+        .enum([
+            'casual',
+            'formal',
+            'sport',
+            'business',
+            'party',
+            'home',
+            'travel',
+            'festival'
+        ])
         .optional(),
-    clothes: z.array(z.any()).optional(),
-    coverImg: z.any().optional(),
+    season: z.enum(['spring', 'summer', 'autumn', 'winter']).optional(),
+    image: z.string().url().optional(),
+    cloudinaryID: z.string().optional(),
+    tags: z.array(z.string()).optional(),
     favorited: z.boolean().optional()
 });
