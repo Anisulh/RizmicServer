@@ -96,14 +96,36 @@ const userSchema = new Schema(
     }
 );
 
-// Middleware to hash password before saving it to the database
+// Middleware to hash password and check phone number uniqueness before saving
 userSchema.pre('save', async function (next) {
+    // Hash the password if it has been modified
     if (this.isModified('password') && this.password) {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
     }
-    next();
+
+    // Check phone number uniqueness if it's provided
+    if (this.isModified('phoneNumber') && this.phoneNumber) {
+        const existingUser = await mongoose.model('User').findOne({ phoneNumber: this.phoneNumber });
+
+        if (existingUser && existingUser._id.toString() !== this._id.toString()) {
+            // Mimic Mongoose unique index error
+            const error = new mongoose.Error.ValidationError();
+            error.addError('phoneNumber', new mongoose.Error.ValidatorError({
+                message: 'Error, expected `{PATH}` to be unique. Value: `{VALUE}`',
+                path: 'phoneNumber',
+                value: this.phoneNumber,
+                reason: 'uniqueViolation'
+            }));
+            next(error);
+        } else {
+            next();
+        }
+    } else {
+        next();
+    }
 });
+
 
 const User = mongoose.model('User', userSchema);
 
