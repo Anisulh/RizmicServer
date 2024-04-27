@@ -48,6 +48,13 @@ export const favoriteOutfit = async (req: Request, res: Response) => {
     const outfit = await Outfits.findByIdAndUpdate(outfitID, {
         favorited: true
     }).lean();
+    if (!outfit) {
+        const appError = new AppError({
+            message: 'Outfit does not exist',
+            httpCode: HttpCode.BAD_REQUEST
+        });
+        return errorHandler.handleError(appError, req, res);
+    }
     res.status(200).json({ outfit });
 };
 export const unfavoriteOutfit = async (req: Request, res: Response) => {
@@ -55,6 +62,13 @@ export const unfavoriteOutfit = async (req: Request, res: Response) => {
     const outfit = await Outfits.findByIdAndUpdate(outfitID, {
         favorited: false
     }).lean();
+    if (!outfit) {
+        const appError = new AppError({
+            message: 'Outfit does not exist',
+            httpCode: HttpCode.BAD_REQUEST
+        });
+        return errorHandler.handleError(appError, req, res);
+    }
     res.status(200).json({ outfit });
 };
 export const updateOutfit = async (req: Request, res: Response) => {
@@ -86,8 +100,7 @@ export const updateOutfit = async (req: Request, res: Response) => {
     } else {
         const appError = new AppError({
             name: 'Unauthorized update',
-            description:
-                'User does not match the associated user of the clothes',
+            message: 'User does not match the associated user of the clothes',
             httpCode: HttpCode.UNAUTHORIZED
         });
         errorHandler.handleError(appError, req, res);
@@ -99,7 +112,7 @@ export const deleteOutfit = async (req: Request, res: Response) => {
     if (!outfitID) {
         const appError = new AppError({
             name: 'Param Requirements Not Met',
-            description: 'outfitID was not sent to server',
+            message: 'outfitID was not sent to server',
             httpCode: HttpCode.BAD_REQUEST
         });
         errorHandler.handleError(appError, req, res);
@@ -108,7 +121,7 @@ export const deleteOutfit = async (req: Request, res: Response) => {
     if (!selectedOutfit) {
         const appError = new AppError({
             name: 'Document Not Found',
-            description: 'Unable to find selection',
+            message: 'Unable to find selection',
             httpCode: HttpCode.NOT_FOUND
         });
         errorHandler.handleError(appError, req, res);
@@ -121,8 +134,7 @@ export const deleteOutfit = async (req: Request, res: Response) => {
     } else {
         const appError = new AppError({
             name: 'Unauthorized update',
-            description:
-                'User does not match the associated user of the clothes',
+            message: 'User does not match the associated user of the clothes',
             httpCode: HttpCode.UNAUTHORIZED
         });
         errorHandler.handleError(appError, req, res);
