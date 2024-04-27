@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { exitHandler } from './exitHandler';
 import logger from './logger';
-import { rollbar } from '../server';
+import { rollbar } from '../app';
 import config from '../config/config';
 
 export enum HttpCode {
@@ -10,6 +10,7 @@ export enum HttpCode {
     BAD_REQUEST = 400,
     UNAUTHORIZED = 401,
     NOT_FOUND = 404,
+    CONFLICT = 409,
     INTERNAL_SERVER_ERROR = 500
 }
 interface AppErrorArgs {
