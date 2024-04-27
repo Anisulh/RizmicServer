@@ -239,19 +239,12 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
     const resetToken = existingUser.createPasswordResetToken();
     const link = `${config.clientHost}/password-reset?token=${resetToken}`;
     const emailTemplate = forgotPasswordTemplate(existingUser?.firstName, link);
-    const success = await sendEmail(
+    await sendEmail(
         email,
         'Password Reset Request',
-        { name: existingUser?.firstName, link: link },
+        { name: existingUser.firstName, link: link },
         emailTemplate
     );
-    if (!success) {
-        const appError = new AppError({
-            httpCode: HttpCode.BAD_REQUEST,
-            message: 'Error sending email'
-        });
-        return errorHandler.handleError(appError, req, res);
-    }
     res.status(200).json({ message: 'Successful password reset sent' });
 };
 
