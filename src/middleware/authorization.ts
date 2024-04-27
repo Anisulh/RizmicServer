@@ -1,9 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import jwt, {
-    JsonWebTokenError,
-    NotBeforeError,
-    TokenExpiredError
-} from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import User from '../components/users/model';
 import config from '../config/config';
 import { AppError, errorHandler, HttpCode } from '../library/errorHandler';
@@ -49,21 +45,6 @@ export const authorization = async (
             return errorHandler.handleError(appError, req, res);
         }
     } catch (error) {
-        if (
-            error instanceof TokenExpiredError ||
-            error instanceof JsonWebTokenError ||
-            error instanceof NotBeforeError
-        ) {
-            const appError = new AppError({
-                name: 'JSON WEB TOKEN ERROR',
-                description: error.message,
-                httpCode: HttpCode.UNAUTHORIZED
-            });
-            return errorHandler.handleError(appError, req, res);
-        }
-        const criticalError = new Error(
-            `Critical Error occured at authorization: ${error}`
-        );
-        return errorHandler.handleError(criticalError);
+        next(error);
     }
 };
