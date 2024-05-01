@@ -13,7 +13,7 @@ import { createOutfitsSchema, updateOutfitsSchema } from './validationSchema';
 import { reqValidation } from '../../middleware/reqValidation';
 import upload from '../../config/multer.config';
 import asyncHandler from 'express-async-handler';
-import convertFavoritedToBool from '../../middleware/convertFavoritedToBool';
+import convertFavoritedToBool from '../../middleware/convertFormDataTypes';
 
 const outfitRouter = express.Router();
 
@@ -22,16 +22,16 @@ outfitRouter
     .post(
         '/',
         authorization,
-        convertFavoritedToBool,
         upload.single('image'),
+        convertFavoritedToBool,
         reqValidation(createOutfitsSchema),
         asyncHandler(createOutfit)
     )
     .put(
         '/:outfitID',
         authorization,
-        convertFavoritedToBool,
         upload.single('image'),
+        convertFavoritedToBool,
         reqValidation(updateOutfitsSchema),
         asyncHandler(updateOutfit)
     )
