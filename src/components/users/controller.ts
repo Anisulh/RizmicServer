@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AppError, errorHandler, HttpCode } from '../../library/errorHandler';
+import { AppError, HttpCode } from '../../library/errorHandler';
 import User from './model';
 import config from '../../config/config';
 import {
@@ -13,7 +13,7 @@ import {
     deleteFromCloudinary,
     uploadToCloudinary
 } from '../clothes/upload.service';
-import { generateToken } from './utils/jwt';
+import { generateToken } from '../../library/jwt';
 import { verifyGoogleToken } from './utils/verifyGoogleToken';
 import { RateLimiterRes } from 'rate-limiter-flexible';
 
@@ -25,62 +25,51 @@ export const googleSignIn = async (req: Request, res: Response) => {
             : null;
 
     if (googleToken) {
-        try {
-            const payload = await verifyGoogleToken(googleToken);
-            if (payload) {
-                const { sub, email, given_name, family_name, picture } =
-                    payload;
-                const existingUser = await User.findOne({ email })
-                    .select(' -_id firstName lastName profilePicture')
-                    .lean();
-                if (existingUser) {
-                    res.cookie('token', generateToken(existingUser._id), {
-                        httpOnly: true,
-                        sameSite: 'strict',
-                        secure: config.env === 'production' ? true : false
-                    });
-                    res.status(201).json(existingUser);
-                }
-                const createdUser = new User({
-                    googleID: sub,
-                    firstName: given_name,
-                    lastName: family_name,
-                    email: email,
-                    profilePicture: picture
-                });
-                await createdUser.save();
-                const userData = {
-                    firstName: createdUser.firstName,
-                    lastName: createdUser.lastName,
-                    profilePicture: createdUser.profilePicture
-                };
-                res.cookie('token', generateToken(createdUser._id), {
+        const payload = await verifyGoogleToken(googleToken);
+        if (payload) {
+            const { sub, email, given_name, family_name, picture } = payload;
+            const existingUser = await User.findOne({ email })
+                .select(' -_id firstName lastName profilePicture')
+                .lean();
+            if (existingUser) {
+                res.cookie('token', generateToken(existingUser._id), {
                     httpOnly: true,
                     sameSite: 'strict',
                     secure: config.env === 'production' ? true : false
                 });
-                res.status(201).json(userData);
-            } else {
-                const appError = new AppError({
-                    name: 'Google OAuth Error',
-                    message: 'Unable to register with google',
-                    httpCode: HttpCode.BAD_REQUEST
-                });
-                errorHandler.handleError(appError, req, res);
-                return;
+                res.status(201).json(existingUser);
             }
-        } catch (error) {
-            const criticalError = new Error(
-                `Unknown error occured in googleRegister: ${error}`
-            );
-            errorHandler.handleError(criticalError, req, res);
+            const createdUser = new User({
+                googleID: sub,
+                firstName: given_name,
+                lastName: family_name,
+                email: email,
+                profilePicture: picture
+            });
+            await createdUser.save();
+            const userData = {
+                firstName: createdUser.firstName,
+                lastName: createdUser.lastName,
+                profilePicture: createdUser.profilePicture
+            };
+            res.cookie('token', generateToken(createdUser._id), {
+                httpOnly: true,
+                sameSite: 'strict',
+                secure: config.env === 'production' ? true : false
+            });
+            res.status(201).json(userData);
+        } else {
+            throw new AppError({
+                name: 'Google OAuth Error',
+                message: 'Unable to register with google',
+                httpCode: HttpCode.BAD_REQUEST
+            });
         }
     } else {
-        const appError = new AppError({
+        throw new AppError({
             httpCode: HttpCode.BAD_REQUEST,
             message: 'No token found'
         });
-        return errorHandler.handleError(appError, req, res);
     }
 };
 
@@ -89,12 +78,11 @@ export const registerUser = async (req: Request, res: Response) => {
     const existingUser = await User.findOne({ email }).lean();
 
     if (existingUser) {
-        const appError = new AppError({
+        throw new AppError({
             name: 'Existing User Error',
             message: 'Unable to register, user already exists',
             httpCode: HttpCode.BAD_REQUEST
         });
-        return errorHandler.handleError(appError, req, res);
     }
 
     //add user to db
@@ -155,14 +143,11 @@ export const loginUser = async (req: Request, res: Response) => {
 
     const existingUser = await User.findOne({ email }).lean();
     if (!existingUser) {
-        return errorHandler.handleError(
-            new AppError({
-                httpCode: HttpCode.BAD_REQUEST,
-                message: 'User does not exist'
-            }),
-            req,
-            res
-        );
+        throw new AppError({
+            httpCode: HttpCode.BAD_REQUEST,
+            message: 'User does not exist',
+            name: 'User not found'
+        });
     }
     const passwordIsValid = await bcrypt.compare(
         password,
@@ -174,18 +159,13 @@ export const loginUser = async (req: Request, res: Response) => {
                 limiterSlowBruteByIP.consume(ipAddr),
                 limiterConsecutiveFailsByEmailAndIP.consume(emailIPkey)
             ]);
-            return errorHandler.handleError(
-                new AppError({
-                    httpCode: HttpCode.BAD_REQUEST,
-                    message: 'Invalid Credentials'
-                }),
-                req,
-                res
-            );
+            throw new AppError({
+                httpCode: HttpCode.BAD_REQUEST,
+                message: 'Invalid Credentials',
+                name: 'Invalid Credentials'
+            });
         } catch (rlRejected) {
-            if (rlRejected instanceof Error) {
-                throw rlRejected;
-            } else if (
+            if (
                 typeof rlRejected === 'object' &&
                 rlRejected !== null &&
                 'msBeforeNext' in rlRejected
@@ -197,6 +177,8 @@ export const loginUser = async (req: Request, res: Response) => {
                         '1'
                 );
                 res.status(429).send('Too Many Requests');
+            } else {
+                throw rlRejected;
             }
         }
     }
@@ -230,11 +212,10 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
     const { email } = req.body;
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
-        const appError = new AppError({
+        throw new AppError({
             httpCode: HttpCode.BAD_REQUEST,
             message: 'Error finding user'
         });
-        return errorHandler.handleError(appError, req, res);
     }
     const resetToken = existingUser.createPasswordResetToken();
     const link = `${config.clientHost}/password-reset?token=${resetToken}`;
@@ -255,11 +236,10 @@ export const resetPassword = async (req: Request, res: Response) => {
     const existingUser = await User.findOne({ resetPasswordToken: token });
 
     if (!existingUser) {
-        const appError = new AppError({
+        throw new AppError({
             httpCode: HttpCode.BAD_REQUEST,
             message: 'User does not exist'
         });
-        return errorHandler.handleError(appError, req, res);
     }
 
     const result = await existingUser.resetPassword(token, password);
@@ -267,11 +247,10 @@ export const resetPassword = async (req: Request, res: Response) => {
     if (result.success) {
         res.status(200).json({ message: result.message });
     } else {
-        const appError = new AppError({
+        throw new AppError({
             httpCode: HttpCode.BAD_REQUEST,
             message: result.message
         });
-        errorHandler.handleError(appError, req, res);
     }
 };
 
@@ -290,19 +269,7 @@ export const updateProfile = async (req: Request, res: Response) => {
 };
 
 export const getUser = async (req: Request, res: Response) => {
-    const { _id } = req.user;
-    const userInstance = await User.findById(_id)
-        .select('-id firstName lastName profilePicture')
-        .lean();
-    if (!userInstance) {
-        const appError = new AppError({
-            message: 'No user found',
-            httpCode: HttpCode.NOT_FOUND
-        });
-        return errorHandler.handleError(appError, req, res);
-    }
-
-    res.status(200).json(userInstance);
+    res.status(200).json(req.user);
 };
 
 export const changePassword = async (req: Request, res: Response) => {
@@ -311,11 +278,10 @@ export const changePassword = async (req: Request, res: Response) => {
 
     const userInstance = await User.findById(_id);
     if (!userInstance) {
-        const appError = new AppError({
+        throw new AppError({
             message: 'No user found',
             httpCode: HttpCode.NOT_FOUND
         });
-        return errorHandler.handleError(appError, req, res);
     }
     if (userInstance.googleID) {
         userInstance.password = newPassword;
@@ -327,11 +293,10 @@ export const changePassword = async (req: Request, res: Response) => {
             userInstance.password
         );
         if (!isValid) {
-            const appError = new AppError({
+            throw new AppError({
                 message: 'Password does not match current password',
                 httpCode: HttpCode.BAD_REQUEST
             });
-            return errorHandler.handleError(appError, req, res);
         }
         userInstance.password = newPassword;
         await userInstance.save();
@@ -344,20 +309,18 @@ export const updateProfileImage = async (req: Request, res: Response) => {
     const user = await User.findById(_id);
 
     if (!user) {
-        const appError = new AppError({
+        throw new AppError({
             name: 'Unauthorized update',
             message: 'User does not match the associated user of the clothes',
             httpCode: HttpCode.UNAUTHORIZED
         });
-        return errorHandler.handleError(appError, req, res);
     }
     if (!req.file) {
-        const appError = new AppError({
+        throw new AppError({
             name: 'No image attached',
             message: 'There was no image attached in request',
             httpCode: HttpCode.BAD_REQUEST
         });
-        return errorHandler.handleError(appError, req, res);
     }
     let imageUpload;
     if (user.cloudinaryID) {
