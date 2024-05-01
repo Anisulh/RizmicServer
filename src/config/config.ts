@@ -11,6 +11,7 @@ const config = {
     port: process.env.PORT || 6000,
     mongoDBUrl: process.env.MONGO_URL || '',
     jwtSecret: process.env.JWT_SECRET || '',
+    jwtIss: process.env.JWT_ISS || '',
     maxWrongAttemptsByIPperDay:
         process.env.MAX_WRONG_ATTEMPTS_BY_IP_PER_DAY as unknown as number || 1,
     maxConsecutiveFailsByEmailAndIP:

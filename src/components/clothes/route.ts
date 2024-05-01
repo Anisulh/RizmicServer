@@ -4,14 +4,16 @@ import { reqValidation } from '../../middleware/reqValidation';
 import {
     createClothes,
     deleteClothes,
+    favoriteClothes,
     getAllClothes,
     getSpecificClothes,
+    unfavoriteClothes,
     updateClothes
 } from './controller';
 import { createClothesSchema, updateClothesSchema } from './validationSchema';
 import upload from '../../config/multer.config';
 import asyncHandler from 'express-async-handler';
-import convertFavoritedToBool from '../../middleware/convertFavoritedToBool';
+import convertFromDataTypes from '../../middleware/convertFormDataTypes';
 
 const clothesRouter = express.Router();
 
@@ -21,7 +23,7 @@ clothesRouter
         '/',
         authorization,
         upload.single('image'),
-        convertFavoritedToBool,
+        convertFromDataTypes,
         reqValidation(createClothesSchema),
         asyncHandler(createClothes)
     )
@@ -29,11 +31,17 @@ clothesRouter
     .put(
         '/:clothesId',
         authorization,
-        convertFavoritedToBool,
+        convertFromDataTypes,
         upload.single('image'),
         reqValidation(updateClothesSchema),
         asyncHandler(updateClothes)
     )
-    .delete('/:clothesId', authorization, asyncHandler(deleteClothes));
+    .delete('/:clothesId', authorization, asyncHandler(deleteClothes))
+    .patch('/favorite/:clothesID', authorization, asyncHandler(favoriteClothes))
+    .patch(
+        '/unfavorite/:clothesID',
+        authorization,
+        asyncHandler(unfavoriteClothes)
+    );
 
 export default clothesRouter;

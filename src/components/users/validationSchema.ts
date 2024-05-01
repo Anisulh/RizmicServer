@@ -3,7 +3,7 @@ import { z } from 'zod';
 const namePattern = /^[a-zA-Z0-9 ',-]+$/;
 const passwordPattern =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*]{8,}$/;
-const phoneNumberPattern = /^\+?(\d{1,3})?[-. ]?\(?\d+\)?[-. ]?\d+[-. ]?\d+$/;
+const phoneNumberPattern = /^\(\d{3}\) \d{3}-\d{4}$/;
 
 const passwordSchema = z.string().regex(passwordPattern, {
     message:
@@ -71,6 +71,10 @@ export const updateProfileSchema = z.object({
         .optional()
 });
 
+export const forgotPasswordSchema = z.object({
+    email: z.string().email()
+});
+
 export const changePasswordSchema = z
     .object({
         currentPassword: passwordSchema,
@@ -78,6 +82,17 @@ export const changePasswordSchema = z
         confirmPassword: passwordSchema
     })
     .refine((data) => data.newPassword === data.confirmPassword, {
+        message: "New passwords don't match",
+        path: ['confirmPassword']
+    });
+
+export const resetPasswordSchema = z
+    .object({
+        token: z.string(),
+        password: passwordSchema,
+        confirmPassword: passwordSchema
+    })
+    .refine((data) => data.password === data.confirmPassword, {
         message: "New passwords don't match",
         path: ['confirmPassword']
     });

@@ -1,6 +1,6 @@
 import User from '../users/model';
 import { Types } from 'mongoose';
-import { generateToken } from '../users/utils/jwt';
+import { generateToken } from '../../library/jwt';
 import request from 'supertest';
 import { startApp } from '../../app';
 import Clothes from '../clothes/models';

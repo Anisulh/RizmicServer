@@ -2,7 +2,7 @@ import request from 'supertest';
 import { startApp } from '../../app';
 import User from './model';
 import { redis } from '../../library/limiterInstances';
-import { generateToken } from './utils/jwt';
+import { generateToken } from '../../library/jwt';
 import dbConnection from '../../config/dbConnection';
 
 const existingUser = {
@@ -11,7 +11,6 @@ const existingUser = {
     email: 'thomashatek@gmail.com',
     password: '1234567aA',
     confirmPassword: '1234567aA'
-
 };
 const existingUserLogin = {
     email: 'thomashatek@gmail.com',
