@@ -44,7 +44,9 @@ const handleError = (
             message: 'One or more fields submitted was not valid'
         });
         errorHandler.handleError(appError, req, res);
-    } else {
+    } else if (error instanceof AppError){
+        errorHandler.handleError(error, req, res);
+    }else {
         const criticalError = new Error(
             `Unknown error occurred in reqValidation: ${error}`
         );
