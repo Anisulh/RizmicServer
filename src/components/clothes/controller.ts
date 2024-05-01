@@ -2,10 +2,14 @@ import { Request, Response } from 'express';
 import { AppError, errorHandler, HttpCode } from '../../library/errorHandler';
 import Clothes from './models';
 import { deleteFromCloudinary, uploadToCloudinary } from './upload.service';
+import { ClothesInput } from './validationSchema';
 
 export const getAllClothes = async (req: Request, res: Response) => {
     const { _id } = req.user;
-    const clothes = await Clothes.find({ userID: _id }).lean();
+    const clothes = await Clothes.find({ userID: _id })
+        .sort({ category: 1, name: 1 })
+        .lean();
+
     res.status(200).json(clothes);
 };
 
@@ -46,6 +50,38 @@ export const getSpecificClothes = async (req: Request, res: Response) => {
         return errorHandler.handleError(appError, req, res);
     }
     res.status(200).json(requestedClothes);
+};
+
+export const favoriteClothes = async (req: Request, res: Response) => {
+    const clothesID = req.params.clothesID;
+
+    const clothes = await Clothes.findByIdAndUpdate(clothesID, {
+        favorited: true
+    }).lean();
+    if (!clothes) {
+        const appError = new AppError({
+            message: 'Clothes does not exist',
+            httpCode: HttpCode.BAD_REQUEST
+        });
+        return errorHandler.handleError(appError, req, res);
+    }
+    res.status(200).json(clothes);
+};
+
+export const unfavoriteClothes = async (req: Request, res: Response) => {
+    const clothesID = req.params.clothesID;
+
+    const clothes = await Clothes.findByIdAndUpdate(clothesID, {
+        favorited: false
+    }).lean();
+    if (!clothes) {
+        const appError = new AppError({
+            message: 'Clothes does not exist',
+            httpCode: HttpCode.BAD_REQUEST
+        });
+        return errorHandler.handleError(appError, req, res);
+    }
+    res.status(200).json(clothes);
 };
 
 export const updateClothes = async (req: Request, res: Response) => {
