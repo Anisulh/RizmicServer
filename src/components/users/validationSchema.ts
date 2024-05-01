@@ -1,8 +1,9 @@
 import { z } from 'zod';
 
 const namePattern = /^[a-zA-Z0-9 ',-]+$/;
-const passwordPattern = /^\(\d{3}\) \d{3}-\d{4}$/;
-const phoneNumberPattern = /^\+?(\d{1,3})?[-. ]?\(?\d+\)?[-. ]?\d+[-. ]?\d+$/;
+const passwordPattern =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*]{8,}$/;
+const phoneNumberPattern = /^\(\d{3}\) \d{3}-\d{4}$/;
 
 const passwordSchema = z.string().regex(passwordPattern, {
     message:
