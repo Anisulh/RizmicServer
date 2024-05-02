@@ -212,10 +212,8 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
     const { email } = req.body;
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
-        throw new AppError({
-            httpCode: HttpCode.BAD_REQUEST,
-            message: 'Error finding user'
-        });
+        res.status(200).json({ message: 'Successful password reset sent' });
+        return;
     }
     const resetToken = existingUser.createPasswordResetToken();
     const link = `${config.clientHost}/password-reset?token=${resetToken}`;
