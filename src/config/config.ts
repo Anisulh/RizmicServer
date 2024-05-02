@@ -21,7 +21,7 @@ const config = {
         hotmailPassword: process.env.HOTMAIL_PASSWORD || ''
     },
     google: {
-        googleClientID: process.env.GOOGLE_CLIENT_ID || '',
+        googleClientID: process.env.GOOGLE_EMAIL_CLIENT_ID || '',
         googleEmailSender: process.env.GOOGLE_EMAIL_SENDER || '',
         googleEmailClientID: process.env.GOOGLE_EMAIL_CLIENT_ID || '',
         googleEmailSenderPassword:

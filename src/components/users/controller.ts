@@ -7,7 +7,6 @@ import {
     limiterSlowBruteByIP
 } from '../../library/limiterInstances';
 import bcrypt from 'bcrypt';
-import sendEmail from './sendEmails';
 import { forgotPasswordTemplate } from './ResetPassword/htmlTemplates';
 import {
     deleteFromCloudinary,
@@ -16,6 +15,7 @@ import {
 import { generateToken } from '../../library/jwt';
 import { verifyGoogleToken } from './utils/verifyGoogleToken';
 import { RateLimiterRes } from 'rate-limiter-flexible';
+import emailService from '../../library/sendEmail';
 
 export const googleSignIn = async (req: Request, res: Response) => {
     const googleToken: string | null =
@@ -218,10 +218,9 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
     const resetToken = existingUser.createPasswordResetToken();
     const link = `${config.clientHost}/password-reset?token=${resetToken}`;
     const emailTemplate = forgotPasswordTemplate(existingUser?.firstName, link);
-    await sendEmail(
+    await emailService.sendEmail(
         email,
         'Password Reset Request',
-        { name: existingUser.firstName, link: link },
         emailTemplate
     );
     res.status(200).json({ message: 'Successful password reset sent' });
