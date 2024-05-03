@@ -84,15 +84,29 @@ export const registerUser = async (req: Request, res: Response) => {
             httpCode: HttpCode.BAD_REQUEST
         });
     }
-
+    const termsOfService = {
+        agreed: req.body.termsAndPolicy,
+        dateAgreed: new Date()
+    };
+    const privacyPolicy = {
+        agreed: req.body.termsAndPolicy,
+        dateAgreed: new Date()
+    };
+    const data = {
+        ...req.body,
+        termsOfService,
+        privacyPolicy
+    }
     //add user to db
-    const createdUser = new User(req.body);
+    const createdUser = new User(data);
     await createdUser.save();
 
     const userData = {
         firstName: createdUser.firstName,
         lastName: createdUser.lastName,
-        profilePicture: createdUser.profilePicture
+        profilePicture: createdUser.profilePicture,
+        termsOfService: createdUser.termsOfService || {},
+        privacyPolicy: createdUser.privacyPolicy || {}
     };
     res.cookie('token', generateToken(createdUser._id) as string, {
         httpOnly: true,

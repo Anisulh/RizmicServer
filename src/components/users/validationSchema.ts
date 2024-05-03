@@ -34,7 +34,10 @@ export const registerSchema = z
         phoneNumber: z
             .string()
             .regex(phoneNumberPattern, 'Invalid phone number format')
-            .optional()
+            .optional(),
+        termsAndPolicy: z.boolean().refine((val) => val === true, {
+            message: 'You must accept the terms and conditions to proceed.'
+        })
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Passwords don't match",

@@ -32,6 +32,14 @@ const userSchema = new Schema(
                 'Please fill a valid phone number'
             ]
         },
+        termsOfService: {
+            agreed: { type: Boolean, required: true, default: false },
+            dateAgreed: { type: Date, required: true }
+        },
+        privacyPolicy: {
+            agreed: { type: Boolean, required: true, default: false },
+            dateAgreed: { type: Date, required: true }
+        },
         resetPasswordToken: {
             type: String,
             required: false
@@ -106,17 +114,26 @@ userSchema.pre('save', async function (next) {
 
     // Check phone number uniqueness if it's provided
     if (this.isModified('phoneNumber') && this.phoneNumber) {
-        const existingUser = await mongoose.model('User').findOne({ phoneNumber: this.phoneNumber });
+        const existingUser = await mongoose
+            .model('User')
+            .findOne({ phoneNumber: this.phoneNumber });
 
-        if (existingUser && existingUser._id.toString() !== this._id.toString()) {
+        if (
+            existingUser &&
+            existingUser._id.toString() !== this._id.toString()
+        ) {
             // Mimic Mongoose unique index error
             const error = new mongoose.Error.ValidationError();
-            error.addError('phoneNumber', new mongoose.Error.ValidatorError({
-                message: 'Error, expected `{PATH}` to be unique. Value: `{VALUE}`',
-                path: 'phoneNumber',
-                value: this.phoneNumber,
-                reason: 'uniqueViolation'
-            }));
+            error.addError(
+                'phoneNumber',
+                new mongoose.Error.ValidatorError({
+                    message:
+                        'Error, expected `{PATH}` to be unique. Value: `{VALUE}`',
+                    path: 'phoneNumber',
+                    value: this.phoneNumber,
+                    reason: 'uniqueViolation'
+                })
+            );
             next(error);
         } else {
             next();
@@ -125,7 +142,6 @@ userSchema.pre('save', async function (next) {
         next();
     }
 });
-
 
 const User = mongoose.model('User', userSchema);
 
