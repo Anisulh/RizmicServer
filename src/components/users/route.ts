@@ -12,7 +12,8 @@ import {
     resetPassword,
     validateUser,
     googleSignIn,
-    logoutUser
+    logoutUser,
+    deleteUser
 } from './controller';
 import {
     changePasswordSchema,
@@ -65,5 +66,6 @@ userRouter.post(
     upload.single('image'),
     asyncHandler(updateProfileImage)
 );
+userRouter.delete('/delete-account', authorization, asyncHandler(deleteUser))
 
 export default userRouter;
