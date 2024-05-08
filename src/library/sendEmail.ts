@@ -28,7 +28,7 @@ class EmailService {
                     user: config.google.googleEmailSender,
                     accessToken,
                     clientId: config.google.googleClientID,
-                    clientSecret: config.google.googleEmailClientSecret,
+                    clientSecret: config.google.googleClientSecret,
                     refreshToken: config.google.googleEmailRefreshToken
                 }
             });
