@@ -8,8 +8,8 @@ const oauth2Client = new OAuth2Client(config.google.googleClientID);
 export const createEmailOAuth2Client = async () => {
     const oauth2Client = new google.auth.OAuth2(
         config.google.googleClientID,
-        config.google.googleEmailClientSecret,
-        'https://developers.google.com/oauthplayground'
+        config.google.googleClientSecret,
+        config.google.googleEmailRedirectURI
     );
 
     oauth2Client.setCredentials({
