@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 import config from '../config/config';
+import { createEmailOAuth2Client } from './googleOAuth';
 
 const OAuth2 = google.auth.OAuth2;
 
@@ -19,27 +20,13 @@ class EmailService {
 
     public async init(): Promise<void> {
         if (!this.transporter) {
-            const oauth2Client = new OAuth2(
-                config.google.googleClientID,
-                config.google.googleEmailClientSecret,
-                'https://developers.google.com/oauthplayground'
-            );
-
-            oauth2Client.setCredentials({
-                refresh_token: config.google.googleEmailRefreshToken
-            });
-
-            const accessToken = await oauth2Client.getAccessToken();
-            if (!accessToken.token) {
-                throw new Error('Failed to create access token');
-            }
-
+            const { accessToken } = await createEmailOAuth2Client();
             this.transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
                     type: 'OAuth2',
                     user: config.google.googleEmailSender,
-                    accessToken: accessToken.token,
+                    accessToken,
                     clientId: config.google.googleClientID,
                     clientSecret: config.google.googleEmailClientSecret,
                     refreshToken: config.google.googleEmailRefreshToken
