@@ -16,6 +16,8 @@ import { generateToken } from '../../library/jwt';
 import { verifyGoogleToken } from './utils/verifyGoogleToken';
 import { RateLimiterRes } from 'rate-limiter-flexible';
 import emailService from '../../library/sendEmail';
+import Clothing from '../clothes/models';
+import Outfits from '../outfits/models';
 
 export const googleSignIn = async (req: Request, res: Response) => {
     const googleToken: string | null =
@@ -96,7 +98,7 @@ export const registerUser = async (req: Request, res: Response) => {
         ...req.body,
         termsOfService,
         privacyPolicy
-    }
+    };
     //add user to db
     const createdUser = new User(data);
     await createdUser.save();
@@ -356,4 +358,36 @@ export const updateProfileImage = async (req: Request, res: Response) => {
         profilePicture: updatedUser?.profilePicture
     };
     res.status(200).json(userData);
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+    const { _id } = req.user;
+    const user = await User.findById(_id);
+    if (!user) {
+        throw new AppError({
+            name: 'Unauthorized update',
+            message: 'User does not match the associated user of the clothes',
+            httpCode: HttpCode.UNAUTHORIZED
+        });
+    }
+
+    const clothes = await Clothing.find({ userId: _id })
+        .select('cloudinaryID')
+        .lean();
+    const outfits = await Outfits.find({ userId: _id })
+        .select('cloudinaryID')
+        .lean();
+
+    // Collect all cloudinary ids
+    const cloudinaryIDs = clothes
+        .map((item) => item.cloudinaryID)
+        .concat(outfits.map((item) => item.cloudinaryID));
+
+    cloudinaryIDs.forEach(async (cloudinaryID) => {
+        if (cloudinaryID) await deleteFromCloudinary(cloudinaryID);
+    });
+    await Clothing.deleteMany({ userID: _id });
+    await Outfits.deleteMany({ userID: _id });
+    await User.findByIdAndDelete(_id);
+    res.status(200).json({ message: 'User deleted' });
 };
