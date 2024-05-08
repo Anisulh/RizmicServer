@@ -1,5 +1,11 @@
-import config from '../../config/config';
-import cloudinary from '../../config/cloudinary.config';
+import { v2 as cloudinary } from 'cloudinary';
+import config from '../config/config';
+
+cloudinary.config({
+    cloud_name: config.cloudinary.name,
+    api_key: config.cloudinary.api_key,
+    api_secret: config.cloudinary.api_secret
+});
 
 export const uploadToCloudinary = async (buffer: string) => {
     try {
@@ -21,3 +27,5 @@ export const deleteFromCloudinary = async (cloudinaryID: string) => {
         throw error;
     }
 };
+
+export default cloudinary;

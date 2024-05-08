@@ -11,7 +11,7 @@ import { forgotPasswordTemplate } from './ResetPassword/htmlTemplates';
 import {
     deleteFromCloudinary,
     uploadToCloudinary
-} from '../clothes/upload.service';
+} from '../../library/cloudinary';
 import { generateToken } from '../../library/jwt';
 import { verifyGoogleToken } from './utils/verifyGoogleToken';
 import { RateLimiterRes } from 'rate-limiter-flexible';

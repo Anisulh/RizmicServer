@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import { AppError, errorHandler, HttpCode } from '../../library/errorHandler';
 import Clothes from './models';
-import { deleteFromCloudinary, uploadToCloudinary } from './upload.service';
-import { ClothesInput } from './validationSchema';
+import { deleteFromCloudinary, uploadToCloudinary } from '../../library/cloudinary';
 
 export const getAllClothes = async (req: Request, res: Response) => {
     const { _id } = req.user;
