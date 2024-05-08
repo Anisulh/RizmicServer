@@ -4,7 +4,7 @@ import { AppError, HttpCode, errorHandler } from '../../library/errorHandler';
 import {
     deleteFromCloudinary,
     uploadToCloudinary
-} from '../clothes/upload.service';
+} from '../../library/cloudinary';
 
 export const listOutfits = async (req: Request, res: Response) => {
     const { _id } = req.user;
