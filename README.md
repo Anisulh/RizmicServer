@@ -5,7 +5,6 @@
 [![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas-green.svg)](https://www.mongodb.com/cloud/atlas)
 [![Jest Testing](https://img.shields.io/badge/testing-jest%2Bsupertest-red.svg)](https://jestjs.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.9.4-blue.svg)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Welcome to the backend repository for Rizmic Fits, a comprehensive platform designed to manage wardrobe elements efficiently. This API handles user data, wardrobe items, outfit combinations, and social interactions using a robust, secure, and scalable server environment.
 
