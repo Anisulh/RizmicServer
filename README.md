@@ -93,10 +93,6 @@ Contributions are what make the open-source community such a fantastic place to 
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
-
 ## Contact
 
 Best way to get in contact is via email: rizmicfits@gmail.com
