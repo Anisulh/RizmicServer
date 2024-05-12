@@ -13,7 +13,8 @@ import {
     validateUser,
     googleSignIn,
     logoutUser,
-    deleteUser
+    deleteUser,
+    searchUser
 } from './controller';
 import {
     changePasswordSchema,
@@ -67,5 +68,7 @@ userRouter.post(
     asyncHandler(updateProfileImage)
 );
 userRouter.delete('/delete-account', authorization, asyncHandler(deleteUser))
+
+userRouter.get('/search', authorization, asyncHandler(searchUser));
 
 export default userRouter;
