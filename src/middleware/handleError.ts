@@ -47,6 +47,7 @@ const handleError = (
     } else if (error instanceof AppError){
         errorHandler.handleError(error, req, res);
     }else {
+        logger.error(error)
         const criticalError = new Error(
             `Unknown error occurred in reqValidation: ${error}`
         );
