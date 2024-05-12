@@ -5,7 +5,6 @@ const convertFormDataTypes = (
     res: Response,
     next: NextFunction
 ) => {
-    console.log(req.body)
     // Convert "favorited" to boolean if present
     if (req.body.favorited) {
         req.body.favorited = req.body.favorited === 'true';

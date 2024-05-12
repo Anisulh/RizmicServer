@@ -31,7 +31,7 @@ export const googleSignIn = async (req: Request, res: Response) => {
         if (payload) {
             const { sub, email, given_name, family_name, picture } = payload;
             const existingUser = await User.findOne({ email })
-                .select(' -_id firstName lastName profilePicture')
+                .select('firstName lastName profilePicture')
                 .lean();
             if (existingUser) {
                 res.cookie('token', generateToken(existingUser._id), {
@@ -40,13 +40,24 @@ export const googleSignIn = async (req: Request, res: Response) => {
                     secure: config.env === 'production' ? true : false
                 });
                 res.status(201).json(existingUser);
+                return;
             }
+            const termsOfService = {
+                agreed: req.body.termsAndPolicy,
+                dateAgreed: new Date()
+            };
+            const privacyPolicy = {
+                agreed: req.body.termsAndPolicy,
+                dateAgreed: new Date()
+            };
             const createdUser = new User({
                 googleID: sub,
                 firstName: given_name,
                 lastName: family_name,
                 email: email,
-                profilePicture: picture
+                profilePicture: picture,
+                termsOfService,
+                privacyPolicy
             });
             await createdUser.save();
             const userData = {
@@ -192,7 +203,8 @@ export const loginUser = async (req: Request, res: Response) => {
                     String(Math.round(rateLimitError.msBeforeNext / 1000)) ||
                         '1'
                 );
-                res.status(429).send('Too Many Requests');
+                res.status(429).json({ message: 'Too Many Requests' });
+                return;
             } else {
                 throw rlRejected;
             }
@@ -228,8 +240,10 @@ export const forgotUserPassword = async (req: Request, res: Response) => {
     const { email } = req.body;
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
-        res.status(200).json({ message: 'Successful password reset sent' });
-        return;
+        throw new AppError({
+            httpCode: HttpCode.BAD_REQUEST,
+            message: 'User does not exist'
+        });
     }
     const resetToken = existingUser.createPasswordResetToken();
     const link = `${config.clientHost}/password-reset?token=${resetToken}`;
@@ -391,3 +405,18 @@ export const deleteUser = async (req: Request, res: Response) => {
     await User.findByIdAndDelete(_id);
     res.status(200).json({ message: 'User deleted' });
 };
+
+
+export const searchUser = async (req: Request, res: Response) => {
+    const { query } = req.query;
+    const users = await User.find({
+        $or: [
+            { firstName: { $regex: query as string, $options: 'i' } },
+            { lastName: { $regex: query as string, $options: 'i' } },
+            { email: { $regex: query as string, $options: 'i' } }
+        ]
+    })
+        .select('firstName lastName email profilePicture')
+        .lean();
+    res.status(200).json(users);
+}

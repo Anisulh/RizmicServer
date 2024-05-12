@@ -63,7 +63,7 @@ class ErrorHandler {
         response?: Response
     ): void | Response {
         if (response) {
-            return response.status(HttpCode.INTERNAL_SERVER_ERROR);
+            return response.status(HttpCode.INTERNAL_SERVER_ERROR).json({message: 'Internal server error'});
         }
         rollbar.error(error, request, { level: 'critical' });
         logger.error('Application encountered a critical error... ');
