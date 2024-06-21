@@ -7,7 +7,7 @@
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
-        "plugin:security/recommendrd",
+        "plugin:security/recommended",
         "prettier"
     ],
     "ignorePatterns": ["**/*.js"],
