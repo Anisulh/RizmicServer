@@ -169,7 +169,7 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 
     const existingUser = await User.findOne({ email }).lean();
-    if (!existingUser) {
+    if (!existingUser || !existingUser.password) {
         throw new AppError({
             httpCode: HttpCode.BAD_REQUEST,
             message: 'User does not exist',
@@ -406,7 +406,6 @@ export const deleteUser = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'User deleted' });
 };
 
-
 export const searchUser = async (req: Request, res: Response) => {
     const { query } = req.query;
     const users = await User.find({
@@ -419,4 +418,4 @@ export const searchUser = async (req: Request, res: Response) => {
         .select('firstName lastName email profilePicture')
         .lean();
     res.status(200).json(users);
-}
+};
