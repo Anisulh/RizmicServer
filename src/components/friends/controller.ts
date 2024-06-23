@@ -7,7 +7,6 @@ interface IUser {
     firstName: string;
     lastName: string;
     profilePicture: string;
-    email: string;
 }
 
 interface IFriendship {
@@ -32,7 +31,6 @@ export async function getFriends(req: Request, res: Response) {
                 _id: friendship.recipient._id,
                 firstName: friendship.recipient.firstName,
                 lastName: friendship.recipient.lastName,
-                email: friendship.recipient.email,
                 profilePicture: friendship.recipient.profilePicture
             };
         } else {
@@ -41,7 +39,6 @@ export async function getFriends(req: Request, res: Response) {
                 _id: friendship.requester._id,
                 firstName: friendship.requester.firstName,
                 lastName: friendship.requester.lastName,
-                email: friendship.requester.email,
                 profilePicture: friendship.requester.profilePicture
             };
         }
@@ -56,7 +53,7 @@ export async function getFriendRequests(req: Request, res: Response) {
         recipient: _id,
         status: 'pending'
     })
-        .populate('requester', 'firstName lastName email profilePicture')
+        .populate('requester', 'firstName lastName profilePicture')
         .lean();
 
     res.status(200).json(friendRequests);
