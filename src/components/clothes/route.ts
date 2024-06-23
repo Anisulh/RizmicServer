@@ -7,10 +7,15 @@ import {
     favoriteClothes,
     getAllClothes,
     getSpecificClothes,
+    shareClothes,
     unfavoriteClothes,
     updateClothes
 } from './controller';
-import { createClothesSchema, updateClothesSchema } from './validationSchema';
+import {
+    createClothesSchema,
+    shareClothesSchema,
+    updateClothesSchema
+} from './validationSchema';
 import upload from '../../config/multer.config';
 import asyncHandler from 'express-async-handler';
 import convertFromDataTypes from '../../middleware/convertFormDataTypes';
@@ -27,7 +32,7 @@ clothesRouter
         reqValidation(createClothesSchema),
         asyncHandler(createClothes)
     )
-    .get('/:clothesId', authorization, asyncHandler(getSpecificClothes))
+    .get('/:clothesId', asyncHandler(getSpecificClothes))
     .put(
         '/:clothesId',
         authorization,
@@ -42,6 +47,12 @@ clothesRouter
         '/unfavorite/:clothesID',
         authorization,
         asyncHandler(unfavoriteClothes)
+    )
+    .patch(
+        '/share/:clothesId',
+        authorization,
+        reqValidation(shareClothesSchema),
+        asyncHandler(shareClothes)
     );
 
 export default clothesRouter;

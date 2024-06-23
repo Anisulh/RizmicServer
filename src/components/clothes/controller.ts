@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
-import { AppError, errorHandler, HttpCode } from '../../library/errorHandler';
+import { AppError, HttpCode } from '../../library/errorHandler';
 import Clothes from './models';
-import { deleteFromCloudinary, uploadToCloudinary } from '../../library/cloudinary';
+import {
+    deleteFromCloudinary,
+    uploadToCloudinary
+} from '../../library/cloudinary';
+import mongoose from 'mongoose';
 
 export const getAllClothes = async (req: Request, res: Response) => {
     const { _id } = req.user;
@@ -31,22 +35,19 @@ export const createClothes = async (req: Request, res: Response) => {
 };
 
 export const getSpecificClothes = async (req: Request, res: Response) => {
-    const { _id } = req.user;
     const clothesId = req.params.clothesId;
 
     const requestedClothes = await Clothes.findOne({
-        userID: _id,
         _id: clothesId
     }).lean();
 
     if (!requestedClothes) {
-        const appError = new AppError({
+        throw new AppError({
             name: 'No clothes found',
             message:
                 'Unable to find clothes matching the provided id or belonging to user',
             httpCode: HttpCode.NOT_FOUND
         });
-        return errorHandler.handleError(appError, req, res);
     }
     res.status(200).json(requestedClothes);
 };
@@ -58,11 +59,10 @@ export const favoriteClothes = async (req: Request, res: Response) => {
         favorited: true
     }).lean();
     if (!clothes) {
-        const appError = new AppError({
+        throw new AppError({
             message: 'Clothes does not exist',
             httpCode: HttpCode.BAD_REQUEST
         });
-        return errorHandler.handleError(appError, req, res);
     }
     res.status(200).json(clothes);
 };
@@ -74,11 +74,10 @@ export const unfavoriteClothes = async (req: Request, res: Response) => {
         favorited: false
     }).lean();
     if (!clothes) {
-        const appError = new AppError({
+        throw new AppError({
             message: 'Clothes does not exist',
             httpCode: HttpCode.BAD_REQUEST
         });
-        return errorHandler.handleError(appError, req, res);
     }
     res.status(200).json(clothes);
 };
@@ -91,13 +90,12 @@ export const updateClothes = async (req: Request, res: Response) => {
         _id: clothesId
     });
     if (!selectedClothes) {
-        const appError = new AppError({
+        throw new AppError({
             name: 'No clothes found',
             message:
                 'Unable to find clothes matching the provided id or belonging to user',
             httpCode: HttpCode.NOT_FOUND
         });
-        return errorHandler.handleError(appError, req, res);
     }
     let imageUpload;
 
@@ -109,7 +107,7 @@ export const updateClothes = async (req: Request, res: Response) => {
         const buffer = req.file.buffer.toString('base64');
         imageUpload = await uploadToCloudinary(buffer);
     }
-    let updateData = { ...req.body };
+    const updateData = { ...req.body };
     if (imageUpload) {
         updateData['image'] = imageUpload.secure_url;
         updateData['cloudinaryID'] = imageUpload.public_id;
@@ -131,13 +129,12 @@ export const deleteClothes = async (req: Request, res: Response) => {
         _id: clothesId
     });
     if (!selectedClothes) {
-        const appError = new AppError({
+        throw new AppError({
             name: 'No clothes found',
             message:
                 'Unable to find clothes matching the provided id or belonging to user',
             httpCode: HttpCode.NOT_FOUND
         });
-        return errorHandler.handleError(appError, req, res);
     }
 
     if (selectedClothes.cloudinaryID) {
@@ -145,4 +142,35 @@ export const deleteClothes = async (req: Request, res: Response) => {
     }
     await selectedClothes.delete();
     res.status(200).json({ id: clothesId });
+};
+
+export const shareClothes = async (req: Request, res: Response) => {
+    const { _id } = req.user;
+    const clothesId = req.params.clothesId;
+    const friends = req.body.friends;
+    const selectedClothes = await Clothes.findOne({
+        userID: _id,
+        _id: clothesId
+    });
+    if (!selectedClothes) {
+        throw new AppError({
+            name: 'No clothes found',
+            message:
+                'Unable to find clothes matching the provided id or belonging to user',
+            httpCode: HttpCode.NOT_FOUND
+        });
+    }
+    // Filter out duplicate friend IDs
+    const uniqueFriends = friends.filter(
+        (friendId: string) =>
+            !selectedClothes.sharedWith.includes(
+                new mongoose.Types.ObjectId(friendId)
+            )
+    );
+
+    // Add new friend IDs to the sharedWith array
+    selectedClothes.sharedWith.push(...uniqueFriends);
+
+    await selectedClothes.save();
+    res.status(200).json({ message: 'successfully shared!' });
 };
