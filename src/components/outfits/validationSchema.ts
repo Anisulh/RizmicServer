@@ -4,6 +4,9 @@ const clothesSchema = z.array(z.any()).nonempty({
     message: "At least one item must be provided for 'clothes'"
 });
 
+export const shareOutfitsSchema = z.object({
+    friends: z.array(z.string()).min(1)
+});
 export const createOutfitsSchema = z.object({
     name: z.string().min(1).max(100),
     description: z.string().max(1000).optional(),

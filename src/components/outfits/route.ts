@@ -4,12 +4,18 @@ import {
     createOutfit,
     deleteOutfit,
     favoriteOutfit,
+    getSpecificOutfit,
     listFavoriteOutfits,
     listOutfits,
+    shareOutfit,
     unfavoriteOutfit,
     updateOutfit
 } from './controllers';
-import { createOutfitsSchema, updateOutfitsSchema } from './validationSchema';
+import {
+    createOutfitsSchema,
+    shareOutfitsSchema,
+    updateOutfitsSchema
+} from './validationSchema';
 import { reqValidation } from '../../middleware/reqValidation';
 import upload from '../../config/multer.config';
 import asyncHandler from 'express-async-handler';
@@ -19,6 +25,7 @@ const outfitRouter = express.Router();
 
 outfitRouter
     .get('/', authorization, asyncHandler(listOutfits))
+    .get('/:outfitID', asyncHandler(getSpecificOutfit))
     .post(
         '/',
         authorization,
@@ -42,5 +49,11 @@ outfitRouter
         '/unfavorite/:outfitID',
         authorization,
         asyncHandler(unfavoriteOutfit)
+    )
+    .patch(
+        '/share/:outfitID',
+        authorization,
+        reqValidation(shareOutfitsSchema),
+        asyncHandler(shareOutfit)
     );
 export default outfitRouter;
