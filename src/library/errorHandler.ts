@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { exitHandler } from './exitHandler';
 import logger from './logger';
 import { rollbar } from '../app';
-import config from '../config/config';
 
 export enum HttpCode {
     OK = 200,
@@ -54,21 +53,23 @@ class ErrorHandler {
         response: Response,
         request?: Request
     ): void {
+        rollbar.warning(error, request);
         response.status(error.httpCode).json({ message: error.message });
-        rollbar.error(error, request, { level: 'error' });
     }
     private handleCriticalError(
         error: Error,
         request?: Request,
         response?: Response
     ): void | Response {
-        if (response) {
-            return response.status(HttpCode.INTERNAL_SERVER_ERROR).json({message: 'Internal server error'});
-        }
-        rollbar.error(error, request, { level: 'critical' });
+        rollbar.critical(error, request);
         logger.error('Application encountered a critical error... ');
         logger.error(error);
-        config.env !== 'production' && exitHandler.handleExit(0);
+        if (response) {
+            return response
+                .status(HttpCode.INTERNAL_SERVER_ERROR)
+                .json({ message: 'Internal server error' });
+        }
+        exitHandler.handleExit(0);
     }
     public handleError(
         error: Error | AppError,
