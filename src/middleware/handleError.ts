@@ -44,14 +44,11 @@ const handleError = (
             message: 'One or more fields submitted was not valid'
         });
         errorHandler.handleError(appError, req, res);
-    } else if (error instanceof AppError){
+    } else if (error instanceof AppError) {
         errorHandler.handleError(error, req, res);
-    }else {
-        logger.error(error)
-        const criticalError = new Error(
-            `Unknown error occurred in reqValidation: ${error}`
-        );
-        errorHandler.handleError(criticalError, req, res);
+    } else {
+        logger.error(error);
+        errorHandler.handleError(error, req, res);
     }
 };
 
