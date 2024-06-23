@@ -14,11 +14,11 @@ import cookieParser from 'cookie-parser';
 import handleError from './middleware/handleError';
 import friendsRouter from './components/friends/route';
 
-
 export const rollbar = new Rollbar({
     accessToken: config.rollBarAccessToken,
     captureUncaught: true,
-    captureUnhandledRejections: true
+    captureUnhandledRejections: true,
+    environment: config.env
 });
 export const startApp = async (): Promise<Application> => {
     const app: Application = express();
@@ -44,15 +44,13 @@ export const startApp = async (): Promise<Application> => {
         res.status(200).send('OK');
     });
     app.use('/api/user', userRouter);
-    app.use('/api/friends', friendsRouter)
+    app.use('/api/friends', friendsRouter);
     app.use('/api/clothes', clothesRouter);
     app.use('/api/generation', generationRouter);
     app.use('/api/outfits', outfitRouter);
 
     app.use(handleError);
 
-    //router error handling
     app.use(routeError);
-    app.use(rollbar.errorHandler());
     return app;
 };
