@@ -358,7 +358,7 @@ export const updateProfileImage = async (req: Request, res: Response) => {
         const buffer = req.file.buffer.toString('base64');
         imageUpload = await uploadToCloudinary(buffer);
     }
-    let updateData: Record<string, unknown> = {};
+    const updateData: Record<string, unknown> = {};
     if (imageUpload) {
         updateData['profilePicture'] = imageUpload.secure_url;
         updateData['cloudinaryID'] = imageUpload.public_id;
