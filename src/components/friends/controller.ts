@@ -72,10 +72,18 @@ export async function sendFriendRequest(req: Request, res: Response) {
 
     const friendRequest = await Friends.findOne({
         $or: [
-            { requester: _id, recipient: userId },
-            { requester: userId, recipient: _id }
+            {
+                requester: _id,
+                recipient: userId,
+                status: { $in: ['pending', 'accepted'] }
+            },
+            {
+                requester: userId,
+                recipient: _id,
+                status: { $in: ['pending', 'accepted'] }
+            }
         ]
-    });
+    }).lean();
 
     if (friendRequest) {
         throw new AppError({
@@ -128,4 +136,3 @@ export async function unfriendUser(req: Request, res: Response) {
 
     res.status(200).json({ message: 'Friend removed' });
 }
-
