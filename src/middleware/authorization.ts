@@ -4,7 +4,6 @@ import User from '../components/users/model';
 import config from '../config/config';
 import { AppError, HttpCode } from '../library/errorHandler';
 import { generateToken } from '../library/jwt';
-import mongoose from 'mongoose';
 
 export const authorization = async (
     req: Request,
@@ -61,13 +60,20 @@ export const authorization = async (
             });
         }
 
+        req.newToken = false;
+        req.tokenExpiry = decodedToken.exp;
+
         // Renew token if expiring in less than 24 hours
         const timeLeft = decodedToken.exp * 1000 - Date.now();
         if (timeLeft < 86400000) {
             const newToken = generateToken(req.user._id);
-            res.cookie('token', newToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+            res.cookie('token', newToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production'
+            });
+            req.newToken = true;
+            req.tokenExpiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
         }
-
 
         next();
     } catch (error) {
