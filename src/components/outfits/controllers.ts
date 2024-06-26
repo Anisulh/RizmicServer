@@ -12,7 +12,7 @@ export const listOutfits = async (req: Request, res: Response) => {
     const outfits = await Outfits.find({ userID: _id })
         .populate('clothes')
         .lean();
-    res.status(200).json({ outfits });
+    res.status(200).json(outfits);
 };
 
 export const getSpecificOutfit = async (req: Request, res: Response) => {
