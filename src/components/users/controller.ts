@@ -39,7 +39,10 @@ export const googleSignIn = async (req: Request, res: Response) => {
                     sameSite: 'strict',
                     secure: config.env === 'production' ? true : false
                 });
-                res.status(201).json(existingUser);
+                res.status(201).json({
+                    user: existingUser,
+                    tokenExpiry: Date.now() + 7 * 24 * 60 * 60 * 1000
+                });
                 return;
             }
             const termsOfService = {
@@ -70,7 +73,10 @@ export const googleSignIn = async (req: Request, res: Response) => {
                 sameSite: 'strict',
                 secure: config.env === 'production' ? true : false
             });
-            res.status(201).json(userData);
+            res.status(201).json({
+                user: userData,
+                tokenExpiry: Date.now() + 7 * 24 * 60 * 60 * 1000
+            });
         } else {
             throw new AppError({
                 name: 'Google OAuth Error',
@@ -127,7 +133,10 @@ export const registerUser = async (req: Request, res: Response) => {
         secure: config.env === 'production' ? true : false
     });
 
-    res.status(201).json(userData);
+    res.status(201).json({
+        user: userData,
+        tokenExpiry: Date.now() + 7 * 24 * 60 * 60 * 1000
+    });
 };
 
 export const getEmailIPkey = (email: string, ip: string) => `${email}_${ip}`;
@@ -224,11 +233,20 @@ export const loginUser = async (req: Request, res: Response) => {
         sameSite: 'strict',
         secure: config.env === 'production'
     });
-    res.status(200).json(userData);
+    res.status(200).json({
+        user: userData,
+        tokenExpiry: Date.now() + 7 * 24 * 60 * 60 * 1000
+    });
 };
 
 export const validateUser = async (req: Request, res: Response) => {
-    res.status(200).json({ success: true });
+    if (req.newToken) {
+        res.status(200).json({
+            newToken: req.newToken,
+            tokenExpiry: req.tokenExpiry
+        });
+    }
+    res.status(200).json({ newToken: req.newToken });
 };
 
 export const logoutUser = async (req: Request, res: Response) => {
