@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
-import Friends from './model';
+import Friends from './friendShipModel';
 import { AppError, HttpCode } from '../../library/errorHandler';
 import SharedClothing from './model/sharedClothingModel';
 import mongoose from 'mongoose';
 import User from '../users/model';
 import Clothing from '../clothes/models';
+import Outfit from '../outfits/models';
+import SharedOutfit from './model/sharedOutfitModel';
 
 interface IUser {
     _id: string;
@@ -41,10 +43,29 @@ export async function getFriends(req: Request, res: Response) {
         .populate('clothingItem')
         .lean();
 
+    const sharedOutfits = await SharedOutfit.find({
+        sharedBy: _id,
+        sharedWith: { $in: friendIds }
+    })
+        .populate('outfitItem')
+        .lean();
+
     interface SharedClothingMap {
         [key: string]: typeof sharedClothes;
     }
+    interface SharedOutfitMap {
+        [key: string]: typeof sharedOutfits;
+    }
     const sharedClothesByFriend = sharedClothes.reduce<SharedClothingMap>(
+        (acc, item) => {
+            const friendId = item.sharedWith.toString();
+            if (!acc[friendId]) acc[friendId] = [];
+            acc[friendId].push(item);
+            return acc;
+        },
+        {}
+    );
+    const sharedOutfitsByFriend = sharedOutfits.reduce<SharedOutfitMap>(
         (acc, item) => {
             const friendId = item.sharedWith.toString();
             if (!acc[friendId]) acc[friendId] = [];
@@ -65,7 +86,8 @@ export async function getFriends(req: Request, res: Response) {
             firstName: friend.firstName,
             lastName: friend.lastName,
             profilePicture: friend.profilePicture,
-            sharedClothes: sharedClothesByFriend[friend._id.toString()] || []
+            sharedClothes: sharedClothesByFriend[friend._id.toString()] || [],
+            sharedOutfits: sharedOutfitsByFriend[friend._id.toString()] || []
         };
     });
 
@@ -227,9 +249,82 @@ export const shareClothing = async (req: Request, res: Response) => {
 
         await session.commitTransaction();
         res.status(200).json({
-            message: 'Successfully shared!',
-            sharedWith: friends.length,
-            clothingItem: clothesId
+            message: 'Successfully shared!'
+        });
+    } catch (error) {
+        await session.abortTransaction();
+        throw error;
+    } finally {
+        session.endSession();
+    }
+};
+
+export const shareOutfit = async (req: Request, res: Response) => {
+    const { _id } = req.user;
+    const outfitId = req.params.outfitId;
+    const friends = req.body.friends;
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const selectedOutfit = await Outfit.findOne({
+            userID: _id,
+            _id: outfitId
+        })
+            .lean()
+            .session(session);
+
+        if (!selectedOutfit) {
+            throw new AppError({
+                name: 'No outfit found',
+                message:
+                    'Unable to find outfit matching the provided id or belonging to user',
+                httpCode: HttpCode.NOT_FOUND
+            });
+        }
+
+        const validFriends = await User.find({ _id: { $in: friends } })
+            .lean()
+            .session(session);
+        if (validFriends.length !== friends.length) {
+            throw new AppError({
+                name: 'Invalid friends',
+                message: 'One or more provided friend IDs are invalid',
+                httpCode: HttpCode.BAD_REQUEST
+            });
+        }
+
+        const sharePromises = friends.map(async (friend: IUser) => {
+            const alreadyShared = await SharedOutfit.findOne({
+                sharedBy: _id,
+                sharedWith: friend,
+                outfitItem: outfitId,
+                status: 'accepted'
+            })
+                .lean()
+                .session(session);
+
+            if (!alreadyShared) {
+                return SharedOutfit.create(
+                    [
+                        {
+                            sharedBy: _id,
+                            sharedWith: friend,
+                            outfitItem: outfitId,
+                            status: 'accepted'
+                        }
+                    ],
+                    { session }
+                );
+            }
+        });
+
+        await Promise.all(sharePromises);
+
+        await session.commitTransaction();
+        res.status(200).json({
+            message: 'Successfully shared!'
         });
     } catch (error) {
         await session.abortTransaction();
@@ -278,10 +373,18 @@ export const getFriendProfile = async (req: Request, res: Response) => {
         .populate('clothingItem')
         .lean();
 
+    const sharedOutfits = await SharedOutfit.find({
+        sharedBy: friendId,
+        sharedWith: _id,
+        status: 'accepted'
+    })
+        .populate('outfitItem')
+        .lean();
+
     const friendProfile = {
         ...friend,
         sharedClothes,
-        sharedOutfits: [],
+        sharedOutfits,
         since: friendship.createdAt
     };
     res.status(200).json(friendProfile);
