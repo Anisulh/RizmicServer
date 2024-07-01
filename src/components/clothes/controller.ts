@@ -5,7 +5,6 @@ import {
     deleteFromCloudinary,
     uploadToCloudinary
 } from '../../library/cloudinary';
-import mongoose from 'mongoose';
 
 export const getAllClothes = async (req: Request, res: Response) => {
     const { _id } = req.user;
@@ -142,35 +141,4 @@ export const deleteClothes = async (req: Request, res: Response) => {
     }
     await selectedClothes.delete();
     res.status(200).json({ id: clothesId });
-};
-
-export const shareClothes = async (req: Request, res: Response) => {
-    const { _id } = req.user;
-    const clothesId = req.params.clothesId;
-    const friends = req.body.friends;
-    const selectedClothes = await Clothes.findOne({
-        userID: _id,
-        _id: clothesId
-    });
-    if (!selectedClothes) {
-        throw new AppError({
-            name: 'No clothes found',
-            message:
-                'Unable to find clothes matching the provided id or belonging to user',
-            httpCode: HttpCode.NOT_FOUND
-        });
-    }
-    // Filter out duplicate friend IDs
-    const uniqueFriends = friends.filter(
-        (friendId: string) =>
-            !selectedClothes.sharedWith.includes(
-                new mongoose.Types.ObjectId(friendId)
-            )
-    );
-
-    // Add new friend IDs to the sharedWith array
-    selectedClothes.sharedWith.push(...uniqueFriends);
-
-    await selectedClothes.save();
-    res.status(200).json({ message: 'successfully shared!' });
 };
