@@ -6,11 +6,12 @@ import {
     acceptFriendRequest,
     unfriendUser,
     shareClothing,
-    getFriendProfile
+    getFriendProfile,
+    shareOutfit
 } from './controller';
 import { authorization } from '../../middleware/authorization';
 import asyncHandler from 'express-async-handler';
-import { shareClothesSchema } from './validationSchema';
+import { shareClothesSchema, shareOutfitsSchema } from './validationSchema';
 import { reqValidation } from '../../middleware/reqValidation';
 
 const friendsRouter = Router();
@@ -42,6 +43,12 @@ friendsRouter.post(
     authorization,
     reqValidation(shareClothesSchema),
     asyncHandler(shareClothing)
+);
+friendsRouter.post(
+    '/share/outfit/:outfitId',
+    authorization,
+    reqValidation(shareOutfitsSchema),
+    asyncHandler(shareOutfit)
 );
 
 export default friendsRouter;
