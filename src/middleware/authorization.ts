@@ -50,7 +50,7 @@ export const authorization = async (
         }
 
         req.user = await User.findById(decodedToken.id)
-            .select('-password')
+            .select('firstName lastName email phoneNumber profilePicture _id')
             .lean();
         if (!req.user) {
             throw new AppError({
