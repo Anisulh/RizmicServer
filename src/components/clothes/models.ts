@@ -83,14 +83,7 @@ const clothingSchema = new mongoose.Schema(
         favorited: {
             type: Boolean,
             default: false
-        },
-        sharedWith: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                required: false,
-                ref: 'User'
-            }
-        ]
+        }
     },
     {
         timestamps: true // Adds createdAt and updatedAt timestamps
@@ -113,4 +106,3 @@ export interface IClothingData {
     updatedAt?: string;
     __v?: 0;
 }
-
