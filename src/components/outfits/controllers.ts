@@ -1,15 +1,14 @@
 import { Request, Response } from 'express';
-import Outfits from './models';
+import Outfit from './models';
 import { AppError, HttpCode } from '../../library/errorHandler';
 import {
     deleteFromCloudinary,
     uploadToCloudinary
 } from '../../library/cloudinary';
-import mongoose from 'mongoose';
 
 export const listOutfits = async (req: Request, res: Response) => {
     const { _id } = req.user;
-    const outfits = await Outfits.find({ userID: _id })
+    const outfits = await Outfit.find({ userID: _id })
         .populate('clothes')
         .lean();
     res.status(200).json(outfits);
@@ -17,7 +16,7 @@ export const listOutfits = async (req: Request, res: Response) => {
 
 export const getSpecificOutfit = async (req: Request, res: Response) => {
     const outfitID = req.params.outfitID;
-    const outfit = await Outfits.findOne({ _id: outfitID })
+    const outfit = await Outfit.findOne({ _id: outfitID })
         .populate('clothes', 'name category image _id size')
         .lean();
     if (!outfit) {
@@ -44,24 +43,24 @@ export const createOutfit = async (req: Request, res: Response) => {
         outfitData['cloudinaryID'] = imageUpload.public_id;
         outfitData['image'] = imageUpload.secure_url;
     }
-    const newOutfit = await Outfits.create(outfitData);
+    const newOutfit = await Outfit.create(outfitData);
 
     res.status(201).json(newOutfit);
 };
 
 export const listFavoriteOutfits = async (req: Request, res: Response) => {
     const { _id } = req.user;
-    const favoriteOutfits = await Outfits.find({
+    const favoriteOutfit = await Outfit.find({
         userID: _id,
         favorited: true
     }).lean();
-    res.status(200).json({ favoriteOutfits });
+    res.status(200).json({ favoriteOutfit });
 };
 
 export const favoriteOutfit = async (req: Request, res: Response) => {
     const outfitID = req.params.outfitID;
 
-    const outfit = await Outfits.findByIdAndUpdate(outfitID, {
+    const outfit = await Outfit.findByIdAndUpdate(outfitID, {
         favorited: true
     }).lean();
     if (!outfit) {
@@ -76,7 +75,7 @@ export const favoriteOutfit = async (req: Request, res: Response) => {
 export const unfavoriteOutfit = async (req: Request, res: Response) => {
     const outfitID = req.params.outfitID;
 
-    const outfit = await Outfits.findByIdAndUpdate(outfitID, {
+    const outfit = await Outfit.findByIdAndUpdate(outfitID, {
         favorited: false
     }).lean();
     if (!outfit) {
@@ -92,7 +91,7 @@ export const updateOutfit = async (req: Request, res: Response) => {
     const { _id } = req.user;
     const outfitID = req.params.outfitID;
 
-    const selectedOutfit = await Outfits.findOne({
+    const selectedOutfit = await Outfit.findOne({
         _id: outfitID,
         userID: _id
     });
@@ -121,11 +120,9 @@ export const updateOutfit = async (req: Request, res: Response) => {
         updateData['image'] = imageUpload.secure_url;
         updateData['cloudinaryID'] = imageUpload.public_id;
     }
-    const updatedOutfit = await Outfits.findByIdAndUpdate(
-        outfitID,
-        updateData,
-        { new: true }
-    ).lean();
+    const updatedOutfit = await Outfit.findByIdAndUpdate(outfitID, updateData, {
+        new: true
+    }).lean();
 
     res.status(200).json(updatedOutfit);
 };
@@ -134,7 +131,7 @@ export const deleteOutfit = async (req: Request, res: Response) => {
     const { _id } = req.user;
     const outfitID = req.params.outfitID;
 
-    const selectedOutfit = await Outfits.findOne({
+    const selectedOutfit = await Outfit.findOne({
         _id: outfitID,
         userID: _id
     });
@@ -151,34 +148,4 @@ export const deleteOutfit = async (req: Request, res: Response) => {
     }
     await selectedOutfit.delete();
     res.status(200).json({ id: outfitID });
-};
-
-export const shareOutfit = async (req: Request, res: Response) => {
-    const { _id } = req.user;
-    const outfitID = req.params.outfitID;
-    const { friends } = req.body;
-    const selectedOutfit = await Outfits.findOne({
-        _id: outfitID,
-        userID: _id
-    });
-    if (!selectedOutfit) {
-        throw new AppError({
-            name: 'No outfit found',
-            message:
-                'Unable to find outfit matching the provided id or belonging to user',
-            httpCode: HttpCode.NOT_FOUND
-        });
-    }
-    // Filter out duplicate friend IDs
-    const uniqueFriends = friends.filter(
-        (friendId: string) =>
-            !selectedOutfit.sharedWith.includes(
-                new mongoose.Types.ObjectId(friendId)
-            )
-    );
-
-    // Add new friend IDs to the sharedWith array
-    selectedOutfit.sharedWith.push(...uniqueFriends);
-    await selectedOutfit.save();
-    res.status(200).json({ message: 'Outfit shared' });
 };

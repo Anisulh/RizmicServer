@@ -61,19 +61,12 @@ const outfitSchema = new mongoose.Schema(
         favorited: {
             type: Boolean,
             default: false
-        },
-        sharedWith: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                required: false,
-                ref: 'User' // Reference to the User schema
-            }
-        ]
+        }
     },
     {
-        timestamps: true // Adds createdAt and updatedAt timestamps
+        timestamps: true
     }
 );
 
-const Outfits = mongoose.model('Outfits', outfitSchema);
-export default Outfits;
+const Outfit = mongoose.model('Outfit', outfitSchema);
+export default Outfit;
