@@ -31,7 +31,7 @@ export const googleSignIn = async (req: Request, res: Response) => {
         if (payload) {
             const { sub, email, given_name, family_name, picture } = payload;
             const existingUser = await User.findOne({ email })
-                .select('firstName lastName profilePicture')
+                .select('firstName lastName email profilePicture')
                 .lean();
             if (existingUser) {
                 res.cookie('token', generateToken(existingUser._id), {
@@ -124,8 +124,7 @@ export const registerUser = async (req: Request, res: Response) => {
         firstName: createdUser.firstName,
         lastName: createdUser.lastName,
         profilePicture: createdUser.profilePicture,
-        termsOfService: createdUser.termsOfService || {},
-        privacyPolicy: createdUser.privacyPolicy || {}
+        email: createdUser.email
     };
     res.cookie('token', generateToken(createdUser._id) as string, {
         httpOnly: true,
@@ -226,7 +225,8 @@ export const loginUser = async (req: Request, res: Response) => {
     const userData = {
         firstName: existingUser.firstName,
         lastName: existingUser.lastName,
-        profilePicture: existingUser.profilePicture
+        profilePicture: existingUser.profilePicture,
+        email: existingUser.email
     };
     res.cookie('token', generateToken(existingUser._id), {
         httpOnly: true,
