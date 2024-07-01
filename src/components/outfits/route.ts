@@ -7,15 +7,10 @@ import {
     getSpecificOutfit,
     listFavoriteOutfits,
     listOutfits,
-    shareOutfit,
     unfavoriteOutfit,
     updateOutfit
 } from './controllers';
-import {
-    createOutfitsSchema,
-    shareOutfitsSchema,
-    updateOutfitsSchema
-} from './validationSchema';
+import { createOutfitsSchema, updateOutfitsSchema } from './validationSchema';
 import { reqValidation } from '../../middleware/reqValidation';
 import upload from '../../config/multer.config';
 import asyncHandler from 'express-async-handler';
@@ -49,11 +44,5 @@ outfitRouter
         '/unfavorite/:outfitID',
         authorization,
         asyncHandler(unfavoriteOutfit)
-    )
-    .patch(
-        '/share/:outfitID',
-        authorization,
-        reqValidation(shareOutfitsSchema),
-        asyncHandler(shareOutfit)
     );
 export default outfitRouter;
